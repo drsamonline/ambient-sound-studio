@@ -1,0 +1,17 @@
+{
+  "name": "ambient-sound-studio",
+  "version": "1.5.0",
+  "description": "A private, offline ambient sound mixer in a single HTML file.",
+  "private": true,
+  "license": "SEE LICENSE IN LICENSE",
+  "author": "Dr. Sohil Momin",
+  "homepage": "https://github.com/drsamonline/ambient-sound-studio",
+  "scripts": {
+    "build": "node tools/build.js",
+    "serve": "python3 -m http.server 8080"
+  },
+  "devDependencies": {
+    "html-minifier-terser": "^7.2.0"
+  },
+  "keywords": ["ambient", "white-noise", "soundscape", "sleep", "focus", "web-audio", "offline", "pwa"]
+}

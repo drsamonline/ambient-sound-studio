@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Question or help
+    url: https://github.com/drsamonline/ambient-sound-studio/blob/main/docs/FAQ.md
+    about: Check the FAQ first — it answers the most common questions.
+  - name: Security report
+    url: https://github.com/drsamonline/ambient-sound-studio/security/advisories/new
+    about: Please report security issues privately, not as a public issue.
