@@ -3,17 +3,23 @@
  * This file is optional. The app needs no network at all, so it already works
  * offline when opened from disk. Serving it next to index.html with this file
  * present is what lets Chrome / Edge / Android offer a full "Install app"
- * prompt and cache the shell for instant loads.
+ * prompt and gives instant repeat loads.
  *
  * Keep it next to index.html. The app registers it automatically over http(s).
+ *
+ * Navigation requests are NETWORK-FIRST on purpose: a cache-first shell would
+ * pin visitors to whichever version they first loaded, so a new deploy would
+ * never reach them. We go to the network, fall back to the cache only when
+ * offline, and refresh the cached copy on every successful load. Static assets
+ * stay cache-first, since they change far less often.
  */
-const CACHE = 'ambient-sound-studio-v1';
-const SHELL = ['./', './index.html'];
+const CACHE = 'ambient-sound-studio-v2';
+const SHELL = './index.html';
 
 self.addEventListener('install', (event) => {
   self.skipWaiting();
   event.waitUntil(
-    caches.open(CACHE).then((cache) => cache.addAll(SHELL).catch(() => {}))
+    caches.open(CACHE).then((cache) => cache.addAll(['./', SHELL]).catch(() => {}))
   );
 });
 
@@ -29,10 +35,18 @@ self.addEventListener('fetch', (event) => {
   const req = event.request;
   if (req.method !== 'GET') return;
 
-  // Navigations: serve the cached shell, fall back to the network.
+  // The page itself: network first, cache only as an offline fallback.
   if (req.mode === 'navigate') {
     event.respondWith(
-      caches.match('./index.html').then((hit) => hit || fetch(req)).catch(() => caches.match('./'))
+      fetch(req)
+        .then((res) => {
+          const copy = res.clone();
+          caches.open(CACHE)
+            .then((cache) => cache.put(SHELL, copy))
+            .catch(() => {});
+          return res;
+        })
+        .catch(() => caches.match(SHELL).then((hit) => hit || caches.match('./')))
     );
     return;
   }

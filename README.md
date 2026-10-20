@@ -8,6 +8,7 @@
 
 Layer rain, thunder, fire, café murmur, ocean, wind chimes and more — then export the mix as WAV or Opus.
 
+[![Live demo](https://img.shields.io/badge/%E2%96%B6%20open%20it-live%20now-brightgreen?style=for-the-badge)](https://drsamonline.github.io/ambient-sound-studio/)
 [![Licence: Personal Use](https://img.shields.io/badge/licence-personal%20use%20only-orange?style=for-the-badge)](LICENSE)
 [![Commercial: licence required](https://img.shields.io/badge/commercial-licence%20required-critical?style=for-the-badge)](LICENSE)
 [![Version](https://img.shields.io/badge/version-1.5-d7a94a?style=for-the-badge)(CHANGELOG.md)
@@ -25,6 +26,10 @@ Layer rain, thunder, fire, café murmur, ocean, wind chimes and more — then ex
 [![Languages](https://img.shields.io/badge/languages-English%20%7C%20Hindi%20%7C%20Gujarati-9cf?style=flat-square)](#-languages)
 [![No build required](https://img.shields.io/badge/build-none%20required-success?style=flat-square)](#-development)
 [![Made in Vadodara, India](https://img.shields.io/badge/made%20in-Vadodara%2C%20India-ff9933?style=flat-square)](#credits)
+
+### ▶ [**Open it in your browser — drsamonline.github.io/ambient-sound-studio**](https://drsamonline.github.io/ambient-sound-studio/)
+
+No install, no sign-up. It runs entirely in your browser and works offline.
 
 [Quick start](#-quick-start) · [Features](#-features) · [Sounds](#-the-sound-library) · [Export](#-exporting) · [Offline & PWA](#-offline--pwa) · [Development](#-development) · [FAQ](docs/FAQ.md)
 
@@ -84,6 +89,23 @@ Layer rain, thunder, fire, café murmur, ocean, wind chimes and more — then ex
 
 ---
 
+## 🌐 Languages
+
+The whole interface — every layer name, every preset, every message — ships in
+three languages. Switch any time from **More ⋯ → Language**; your choice is
+remembered between visits.
+
+| Language | Native name | Coverage |
+|---|---|---|
+| English | English | Complete |
+| Hindi | हिन्दी | Complete |
+| Gujarati | ગુજરાતી | Complete |
+
+Adding another language is a matter of adding one object to the `STR` dictionary
+in the source — see [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md#8-localisation).
+
+---
+
 ## 🎼 The sound library
 
 25 layers, every one synthesised in the browser — no audio files, no network.
@@ -137,6 +159,15 @@ Filter by category or search by name in the app. **Surprise me** picks a random 
 
 ## 🚀 Quick start
 
+### Use it online
+
+**[https://drsamonline.github.io/ambient-sound-studio/](https://drsamonline.github.io/ambient-sound-studio/)**
+
+That is the whole app, hosted. Nothing to install. On a phone you can add it to
+your home screen and it will open like a normal app.
+
+### Or run it locally
+
 **The whole app is one file.** Download it and open it:
 
 ```bash
@@ -149,7 +180,8 @@ open index.html          # macOS
 
 That's it — no install, no build, no server, no network. Everything runs from your disk.
 
-Prefer a link? Serve the folder with any static host (GitHub Pages, Netlify, `python3 -m http.server`) and open it in a browser.
+You can also serve the folder with any static host (GitHub Pages, Netlify,
+`python3 -m http.server`) — that is exactly how the [hosted copy](https://drsamonline.github.io/ambient-sound-studio/) above is deployed.
 
 > **First click starts audio.** Browsers require a user gesture before playing sound, so press the ▶ button (or a preset) to begin.
 
@@ -251,6 +283,7 @@ Requires the **Web Audio API** (every current browser). The app detects its abse
 ```
 ambient-sound-studio/
 ├── index.html                      ← the app (minified, ready to serve)
+│                                     live at drsamonline.github.io/ambient-sound-studio
 ├── sw.js                           ← optional service worker for a full PWA install
 ├── src/
 │   └── ambient-sound-studio.src.html   ← readable source (edit this one)

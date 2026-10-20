@@ -1777,7 +1777,7 @@ document.head.appendChild(fi);
    full offline caching and a proper installable PWA). Opened from disk, the
    app needs no network at all, so it already works offline. */
 if(location.protocol==="https:"||location.protocol==="http:"){
-try{navigator.serviceWorker.register("sw.js",{scope:"./"}).catch(function(){});}catch(e){}
+try{navigator.serviceWorker.register("sw.js",{scope:"./"}).then(function(r){try{r.update();}catch(e){}}).catch(function(){});}catch(e){}
 }
 }
 

@@ -5,7 +5,7 @@
   "private": true,
   "license": "SEE LICENSE IN LICENSE",
   "author": "Dr. Sohil Momin",
-  "homepage": "https://github.com/drsamonline/ambient-sound-studio",
+  "homepage": "https://drsamonline.github.io/ambient-sound-studio/",
   "scripts": {
     "build": "node tools/build.js",
     "serve": "python3 -m http.server 8080"
@@ -13,5 +13,14 @@
   "devDependencies": {
     "html-minifier-terser": "^7.2.0"
   },
-  "keywords": ["ambient", "white-noise", "soundscape", "sleep", "focus", "web-audio", "offline", "pwa"]
+  "keywords": [
+    "ambient",
+    "white-noise",
+    "soundscape",
+    "sleep",
+    "focus",
+    "web-audio",
+    "offline",
+    "pwa"
+  ]
 }
