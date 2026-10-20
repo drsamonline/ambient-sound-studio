@@ -3,6 +3,38 @@
 All notable changes to Ambient Sound Studio are documented here.
 This project follows [Semantic Versioning](https://semver.org/).
 
+## [1.6.0] - 2026-10-20
+
+### Added
+- **Localisation** — the whole interface, the 25 layer names, the 36 presets and
+  all messages now speak **English, Hindi and Gujarati**, switchable in the More
+  menu and remembered between visits.
+- **Sound packs** — export your custom sounds together with the current mix as
+  one shareable file, and import someone else's.
+- **8 new presets** (36 total), including seasonal and regional mixes: Monsoon
+  Evening, Rain on Window, Dawn Chorus, Winter Night, Summer Afternoon, Temple
+  Bells, Spa and Exam Hall.
+- **Ducking now applies to exports**, not just live playback. The ducking curve
+  is measured from the very tiles being exported, so what you hear is what you
+  get.
+- **Drag-to-reorder now works on touch** (Pointer Events with a drag handle),
+  and with the arrow keys when the handle has focus.
+- A language row in the More menu.
+
+### Changed
+- **Custom sounds are decoded on first use, not at startup.** Decoded audio is
+  far larger than the file it came from, so a library of long sounds no longer
+  costs memory until you actually raise one. A restored sound now starts silent
+  rather than jumping to 50%.
+- The now-playing bar updates the instant you pick a preset, instead of after
+  the crossfade finishes.
+- The saved card order is replayed after custom sounds are restored, so a sound
+  keeps the position you gave it.
+
+### Fixed
+- A local variable named `t` in the export path shadowed the translation
+  function (caught during testing, before release).
+
 ## [1.5.0] - 2026-10-19
 
 ### Added
@@ -94,6 +126,7 @@ This project follows [Semantic Versioning](https://semver.org/).
 - Initial release: 24 synthesised layers, 14 presets, WAV/Opus export,
   mood themes, sleep timer, offline PWA shell.
 
+[1.6.0]: https://github.com/drsamonline/ambient-sound-studio/compare/v1.5.0...v1.6.0
 [1.5.0]: https://github.com/drsamonline/ambient-sound-studio/compare/v1.4.0...v1.5.0
 [1.4.0]: https://github.com/drsamonline/ambient-sound-studio/compare/v1.3.0...v1.4.0
 [1.3.0]: https://github.com/drsamonline/ambient-sound-studio/compare/v1.2.0...v1.3.0

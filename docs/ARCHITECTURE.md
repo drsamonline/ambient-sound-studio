@@ -25,7 +25,8 @@ Everything below refers to that file.
 | UI | `buildUI()`, `syncCard()`, `syncRow()`, `buildMixer()`, `wireControls()` |
 | Profiles | `buildProfiles()`, `applyProfileId()`, `tweenTo()`, `switchTheme()` |
 | Export | `preRenderTile()`, `normalizeBuffer()`, `encodeWAV()`, `encodeOpusWasm()`, `exportMix()` |
-| Extras | IndexedDB store, Opus encoder download/cache, custom sound files |
+| Extras | IndexedDB store, Opus encoder download/cache, custom sound files, sound packs |
+| i18n | `STR` dictionary, `_t()` lookup, `applyLang()` |
 | Boot | `boot()` — wires everything together |
 
 ---
@@ -135,8 +136,13 @@ or switched off from the More menu.
    v
  for each audible layer:
      event-driven -> render a POOL of up to 6 distinct tiles, lay them end to end
-                     with equal-power crossfades  (so nothing repeats audibly)
+                     with equal-power crossfades  (so nothing repeats audibly),
+                     and measure each tile's RMS envelope
      bed-only     -> build once, schedule events across the whole duration
+   |
+   v
+ ducking curve from the transient envelopes, automated onto the duck bus
+ that the bed layers pass through        (only when ducking is enabled)
    |
    v
  master envelope (fade in / fade out, length chosen in the UI)
@@ -172,7 +178,33 @@ no practical size limit. It works even when the page is opened from `file://`.
 
 ---
 
-## 8. Offline
+## 8. Localisation
+
+The interface ships in **English, Hindi and Gujarati**. Rather than annotating
+every element in the markup, `applyLang()` walks the DOM once, matches each text
+node and attribute value against a reverse index of the English dictionary, and
+remembers which key each one came from. Switching language is then a re-render,
+not a re-parse — and it means new markup is localised automatically as long as
+its English text is in the dictionary.
+
+`STR` holds `{en:{…}, hi:{…}, gu:{…}}`; `_t(key, vars)` looks a key up in the
+current language, falls back to English, and substitutes `{placeholders}`.
+Dynamic content (layer names, preset names, messages, the now-playing bar, the
+help text, dialog buttons) goes through `_t()` directly. `refreshNames()`
+re-renders the parts of the interface that are built from data.
+
+The function is named `_t` rather than `t` on purpose: several functions declare
+a local `var t`, and a shorter name would have been shadowed inside them.
+
+## 9. Sound packs
+
+**Export sound pack** writes one JSON file holding every custom sound (base64 of
+the original bytes, straight from IndexedDB) plus the current mix — volumes,
+theme, Space and beat. **Import sound pack…** restores both: each sound is
+written back to IndexedDB and becomes a layer, then the mix is tweened in. It is
+the offline, dependency-free way to hand someone your exact setup.
+
+## 10. Offline
 
 The app makes **no network requests at all** except the optional, user-confirmed
 Opus encoder download. Every built-in sound is generated locally, so opening the

@@ -204,6 +204,11 @@ body.mixer-mode #grid{display:none}
 .sep{height:1px;background:var(--cardb);margin:7px 4px}
 .extstat{font-size:11px;color:var(--tx2);line-height:1.4}
 .extstat.ok{color:#8fd19e}
+.grip{flex:none;width:13px;height:16px;margin:0 1px 0 -2px;padding:0;border:0;background:none;color:var(--tx2);font-size:11px;line-height:16px;text-align:center;cursor:grab;touch-action:none;opacity:.28;border-radius:4px;transition:opacity .2s,background .2s}
+.card:hover .grip,.grip:focus-visible{opacity:.85;background:rgba(255,255,255,.07)}
+.grip:active{cursor:grabbing;opacity:1}
+@media(hover:none){.grip{opacity:.5}}
+.card.dragging{opacity:.45;border-color:var(--ac)}
 .del2{position:absolute;top:4px;right:4px;width:16px;height:16px;border-radius:5px;background:rgba(255,255,255,.08);color:var(--tx2);font-size:12px;line-height:1;display:flex;align-items:center;justify-content:center}
 .del2:hover{background:rgba(220,80,80,.3);color:#ff9e9e}
 .card .chead{position:relative}
@@ -288,6 +293,7 @@ body.mixer-mode #grid{display:none}
 <div class="hrow"><span class="hlab">Beat</span><select id="beatSel" aria-label="Binaural beat"><option value="2.5">Delta 2.5 Hz</option><option value="6">Theta 6 Hz</option><option value="10" selected>Alpha 10 Hz</option><option value="16">Beta 16 Hz</option><option value="40">Gamma 40 Hz</option></select></div>
 <div class="hrow"><span class="hlab">Output</span><select id="sinkSel" aria-label="Audio output"></select></div>
 <div class="hrow"><span class="hlab">Accent</span><span id="accentRow" class="swatches"></span></div>
+<div class="hrow"><span class="hlab">Language</span><select id="langSel" aria-label="Language"></select></div>
 <button type="button" id="stopAllBtn">Silence all layers</button>
 <button type="button" id="mixerBtn">Mixer view</button>
 <button type="button" id="breatheBtn">Breathing guide</button>
@@ -308,11 +314,14 @@ body.mixer-mode #grid{display:none}
 <button type="button" id="dlExtrasBtn">Download Opus encoder</button>
 <button type="button" id="clrExtrasBtn">Clear cached extras</button>
 <button type="button" id="addSoundBtn">Add sound files&hellip;</button>
+<button type="button" id="packExpBtn">Export sound pack</button>
+<button type="button" id="packImpBtn">Import sound pack&hellip;</button>
 <button type="button" id="installBtn" style="display:none">Install app</button>
 <input type="file" id="sndFile" accept="audio/*" multiple hidden>
 </div>
 </div>
 <input type="file" id="impFile" accept="application/json,.json" hidden>
+<input type="file" id="packFile" accept="application/json,.json" hidden>
 </div>
 <div id="prog"><div class="box"><div class="spin"></div><div id="progT" aria-live="polite"></div><button type="button" id="progCancel">Cancel</button></div></div>
 <div id="dlg" class="modalbg"></div>
@@ -324,7 +333,7 @@ if(NOAUDIO){document.getElementById("fatal").style.display="flex";}
 
 var AUTHOR="Dr. Sohil Momin";
 var APP_NAME="Ambient Sound Studio";
-var APP_VER="1.5";
+var APP_VER="1.6";
 var lastMixName="Custom mix";
 var currentTheme="default";
 
@@ -387,7 +396,15 @@ var P=[
 {id:"nightbus",n:"Night Bus",cat:"Urban",th:"city",v:{train:.5,traffic:.28,cosmic:.1}},
 {id:"zen",n:"Zen Garden",cat:"Relax",th:"default",v:{chimes:.26,stream:.3,wind:.14,cosmic:.1}},
 {id:"focusbeats",n:"Focus Beats",cat:"Focus",th:"focus",v:{binaural:.34,brown:.12}},
-{id:"sleepbeats",n:"Sleep Beats",cat:"Sleep",th:"default",v:{binaural:.3,brown:.2,rain:.15}}
+{id:"sleepbeats",n:"Sleep Beats",cat:"Sleep",th:"default",v:{binaural:.3,brown:.2,rain:.15}},
+{id:"monsoon",n:"Monsoon Evening",cat:"Nature",th:"storm",v:{rain:.82,thunder:.42,wind:.26,crickets:.1}},
+{id:"rainwindow",n:"Rain on Window",cat:"Relax",th:"rain",v:{rain:.6,brown:.18,thunder:.12}},
+{id:"dawn",n:"Dawn Chorus",cat:"Nature",th:"forest",v:{birds:.5,forest:.34,stream:.2,wind:.14}},
+{id:"winter",n:"Winter Night",cat:"Sleep",th:"default",v:{wind:.4,fire:.36,brown:.3}},
+{id:"summer",n:"Summer Afternoon",cat:"Nature",th:"forest",v:{crickets:.55,fan:.3,birds:.12}},
+{id:"temple",n:"Temple Bells",cat:"Relax",th:"ocean",v:{chimes:.5,stream:.22,wind:.12}},
+{id:"spa",n:"Spa",cat:"Relax",th:"ocean",v:{stream:.5,ocean:.3,chimes:.15}},
+{id:"exam",n:"Exam Hall",cat:"Focus",th:"focus",v:{typing:.45,clock:.18,fan:.22,white:.2}}
 ];
 var BASE_TRIM={binaural:.5,white:.35,pink:.5,brown:.6,clock:.85,rain:.85,thunder:1,fire:1,ocean:.85,wind:1.2,forest:1.25,typing:1.1,cafe:1.15,train:1.1,stream:1.15,traffic:1.15,catpurr:1.25,cosmic:1.35,heartbeat:.9,fan:.6,vinyl:1.4,birds:1.05,walking:1.15,crickets:1.25,chimes:1.2};
 var CAL_TARGET=.7,calDone=false,calRunning=false;
@@ -415,7 +432,7 @@ return '<svg viewBox="0 0 24 24" class="ico">'+S[t]+'</svg>';
 /* ---------- audio engine ---------- */
 var a=null,g=null,comp=null,L=[],solo=null,playing=false,mVal=.8,schedInt=null,BUF=null,fabEl=null;
 var revIn=null,revWet=null,revConv=null,spaceVal=.18,masterMuted=false,restoredVols=null;
-var duckBus=null,ducking=false,beatHz=10,pomoLabel="";
+var duckBus=null,ducking=false,beatHz=10,pomoLabel="",tweenTargets=null,orderDirty=false;
 var CUSTOM_SOUNDS={},soundsRestored=false,encoderReady=false,opusFactory=null;
 var BED={rain:1,wind:1,ocean:1,forest:1,stream:1,brown:1,pink:1,white:1,fan:1,fire:1,cafe:1,traffic:1,cosmic:1,vinyl:1,catpurr:1,clock:1,binaural:1};
 function isBed(id){return !!BED[id];}
@@ -788,6 +805,7 @@ return .03+Math.random()*.18;
 break;}
 default:{
 var cs=CUSTOM_SOUNDS[id];
+if(cs&&!cs.buf&&cs.raw)decodeCustom(id);   /* decoded on first use, not at startup */
 if(cs&&cs.buf){var sc=c.createBufferSource();sc.buffer=cs.buf;sc.loop=true;sc.connect(out);sc.start();}
 break;}
 }
@@ -860,7 +878,7 @@ if(!a)return;
 try{localStorage.removeItem("amb_trims");}catch(e){}
 for(var k in TRIM_CACHE)delete TRIM_CACHE[k];
 L.forEach(function(l){if(l.built){l.trimVal=BASE_TRIM[l.def.id]||1;if(l.trim)l.trim.gain.setValueAtTime(l.trimVal,a.currentTime);calibrateOne(l);}});
-toast("Re-measuring levels\u2026");
+toast(_t("msg_recal"));
 }
 var meterInt=null,meterFrame=0;
 function startMeters(){if(meterInt)return;meterInt=setInterval(meterTick,80);}
@@ -966,11 +984,11 @@ if(sob)sob.setAttribute("aria-pressed",solo===l.def.id?"true":"false");
 }
 function cardHTML(def){
 var isC=def.id.indexOf("u:")===0;
-return '<div class="card" data-id="'+def.id+'" style="--h:'+def.h+'" draggable="true">'+
-'<div class="chead"><span class="dot"></span><span class="cn">'+esc(def.n)+'</span>'+(isC?'<button class="del2" data-del2="'+esc(def.id)+'" aria-label="Remove '+esc(def.n)+'" title="Remove">&times;</button>':'')+'</div>'+
-'<div class="crow"><input type="range" class="sl" min="0" max="100" value="0" data-id="'+def.id+'" aria-label="'+esc(def.n)+' volume" aria-valuetext="'+esc(def.n)+' volume 0%">'+
+return '<div class="card" data-id="'+def.id+'" style="--h:'+def.h+'">'+
+'<div class="chead"><button type="button" class="grip" aria-label="'+esc(_t("aria_reorder"))+' '+esc(def.n)+'" title="'+esc(_t("aria_reorder"))+'">\u28ff</button><span class="dot"></span><span class="cn">'+esc(def.n)+'</span>'+(isC?'<button class="del2" data-del2="'+esc(def.id)+'" aria-label="'+esc(_t("aria_remove"))+' '+esc(def.n)+'" title="'+esc(_t("aria_remove"))+'">&times;</button>':'')+'</div>'+
+'<div class="crow"><input type="range" class="sl" min="0" max="100" value="0" data-id="'+def.id+'" aria-label="'+esc(def.n)+' '+esc(_t("aria_volume"))+'" aria-valuetext="'+esc(def.n)+'">'+
 '<div class="btns"><button class="bt mt" data-id="'+def.id+'" aria-pressed="false" aria-label="Mute '+esc(def.n)+'"></button>'+
-'<button class="bt so" data-id="'+def.id+'" aria-pressed="false" aria-label="Solo '+esc(def.n)+'"></button></div></div>'+
+'<button class="bt so" data-id="'+def.id+'" aria-pressed="false" aria-label="'+esc(_t("aria_solo"))+' '+esc(def.n)+'"></button></div></div>'+
 '<div class="meter" aria-hidden="true"><i></i></div>'+
 '<div class="val" aria-hidden="true"></div></div>';
 }
@@ -980,7 +998,7 @@ return '<div class="mrow" data-id="'+def.id+'">'+
 '<input type="range" class="msl" min="0" max="100" value="0" data-id="'+def.id+'" aria-label="'+esc(def.n)+' volume">'+
 '<span class="mval">0%</span>'+
 '<div class="meter" aria-hidden="true"><i></i></div>'+
-'<button class="bt mt" data-id="'+def.id+'" aria-pressed="false" aria-label="Mute '+esc(def.n)+'"></button>'+
+'<button class="bt mt" data-id="'+def.id+'" aria-pressed="false" aria-label="'+esc(_t("aria_mute"))+' '+esc(def.n)+'"></button>'+
 '<button class="bt so" data-id="'+def.id+'" aria-pressed="false" aria-label="Solo '+esc(def.n)+'"></button></div>';
 }
 function wireControls(root){
@@ -993,24 +1011,66 @@ s.ondblclick=function(){var l=findL(s.dataset.id);if(!l)return;l.val=0;if(l.buil
 [].forEach.call(root.querySelectorAll(".so"),function(b){b.innerHTML=ic("solo");b.onclick=onSolo;});
 [].forEach.call(root.querySelectorAll(".del2"),function(b){b.onclick=function(e){e.stopPropagation();removeSound(b.dataset.del2);};});
 }
+/* Reordering uses Pointer Events on the grip, so it works with a mouse, a pen
+   and a finger. Arrow keys work too, when the grip has focus. */
 function wireDrag(grid){
-var dragEl=null;
 [].forEach.call(grid.querySelectorAll(".card"),function(c){
-if(c._dw)return;c._dw=1;
-c.addEventListener("dragstart",function(e){dragEl=c;c.classList.add("dragging");try{e.dataTransfer.setData("text/plain",c.dataset.id);e.dataTransfer.effectAllowed="move";}catch(_){}});
-c.addEventListener("dragend",function(){c.classList.remove("dragging");dragEl=null;applyOrder();});
-c.addEventListener("dragover",function(e){if(!dragEl||dragEl===c)return;e.preventDefault();var r=c.getBoundingClientRect();var after=(e.clientY-r.top)>r.height/2;grid.insertBefore(dragEl,after?c.nextSibling:c);});
+var g=c.querySelector(".grip");
+if(!g||g._gw)return;g._gw=1;
+function moveTo(x,y){
+var cards=[].slice.call(grid.querySelectorAll(".card")).filter(function(el){return el!==c;});
+var best=null,bd=Infinity,after=false;
+cards.forEach(function(el){
+var r=el.getBoundingClientRect(),cx=r.left+r.width/2,cy=r.top+r.height/2;
+var d=(x-cx)*(x-cx)+(y-cy)*(y-cy);
+if(d<bd){bd=d;best=el;after=(y>cy)||(Math.abs(y-cy)<=r.height/2&&x>cx);}
+});
+if(!best)return;
+var ref=after?best.nextSibling:best;
+if(ref!==c)grid.insertBefore(c,ref);
+}
+g.addEventListener("pointerdown",function(e){
+if(e.button&&e.button!==0)return;
+e.preventDefault();
+c.classList.add("dragging");
+try{g.setPointerCapture(e.pointerId);}catch(_){}
+});
+g.addEventListener("pointermove",function(e){
+if(!c.classList.contains("dragging"))return;
+e.preventDefault();
+moveTo(e.clientX,e.clientY);
+});
+function finish(e){
+if(!c.classList.contains("dragging"))return;
+c.classList.remove("dragging");
+try{g.releasePointerCapture(e.pointerId);}catch(_){}
+applyOrder();
+}
+g.addEventListener("pointerup",finish);
+g.addEventListener("pointercancel",function(){c.classList.remove("dragging");});
+g.addEventListener("keydown",function(e){
+var k=e.key;
+if(k!=="ArrowLeft"&&k!=="ArrowRight"&&k!=="ArrowUp"&&k!=="ArrowDown")return;
+e.preventDefault();
+var cards=[].slice.call(grid.querySelectorAll(".card")),i=cards.indexOf(c);
+if(i<0)return;
+var back=(k==="ArrowLeft"||k==="ArrowUp"),j=back?i-1:i+1;
+if(j<0||j>=cards.length)return;
+grid.insertBefore(c,back?cards[j]:cards[j].nextSibling);
+applyOrder();g.focus();
+});
 });
 }
 function applyOrder(){
 var ids=[].map.call(document.querySelectorAll("#grid .card"),function(c){return c.dataset.id;});
+orderDirty=false;
 try{localStorage.setItem("amb_order",JSON.stringify(ids));}catch(e){}
 D.sort(function(x,y){var a2=ids.indexOf(x.id),b2=ids.indexOf(y.id);return (a2<0?999:a2)-(b2<0?999:b2);});
 if(L.length){
 L.sort(function(x,y){var a3=ids.indexOf(x.def.id),b3=ids.indexOf(y.def.id);return (a3<0?999:a3)-(b3<0?999:b3);});
 L.forEach(function(l,i){l.i=i;if(l.pan)l.pan.pan.value=panFor(i);});
 }
-buildMixer();toast("Order saved");
+buildMixer();toast(_t("msg_ordersaved"));
 }
 function applySavedOrder(){
 try{var ids=JSON.parse(localStorage.getItem("amb_order")||"[]");
@@ -1094,7 +1154,7 @@ var nm=b.dataset.del.slice(2);
 if(await uiConfirm('Delete the mix "'+nm+'"?')){
 pushUndo();
 var list=loadCustom().filter(function(c){return c.name!==nm;});
-if(saveCustom(list)){buildProfiles();toast("Mix deleted \u2014 Undo to restore");}
+if(saveCustom(list)){buildProfiles();toast(_t("msg_mixdel"));}
 }
 };
 });
@@ -1113,10 +1173,10 @@ if(existing){
 if(!await uiConfirm('A mix called "'+name+'" already exists. Overwrite it?'))return;
 existing.vols=vols;existing.theme=currentTheme;
 }else{
-if(list.length>=20){await uiAlert("You have reached the 20-mix limit. Delete one first.");return;}
+if(list.length>=20){await uiAlert(_t("msg_mixlimit"));return;}
 list.push({name:name,vols:vols,theme:currentTheme});
 }
-if(saveCustom(list)){buildProfiles();toast("Mix saved");}
+if(saveCustom(list)){buildProfiles();toast(_t("msg_mixsaved"));}
 };
 var rp=document.getElementById("randP");
 if(rp)rp.onclick=randomize;
@@ -1128,6 +1188,7 @@ if(match)match.classList.add("sel");
 var tweenGen=0;
 function tweenTo(vols){
 var myGen=++tweenGen;
+tweenTargets=vols;updateNowBar();
 var start=L.map(function(l){return l.val;});
 var target=L.map(function(l){return vols[l.def.id]||0;});
 for(var bi=0;bi<L.length;bi++){if(target[bi]>0)ensureLayer(L[bi]);}
@@ -1141,7 +1202,7 @@ L.forEach(function(l,i){
 var s0=(i<start.length)?start[i]:l.val,t0=(i<target.length)?target[i]:l.val;
 l.val=s0+(t0-s0)*e;updateGain(l);if(doSync)syncCard(l);
 });
-if(k<1)requestAnimationFrame(step);else{updateNowBar();saveSession();}
+if(k<1)requestAnimationFrame(step);else{tweenTargets=null;updateNowBar();saveSession();}
 }
 requestAnimationFrame(step);
 }
@@ -1221,7 +1282,7 @@ lastMixName="Surprise mix";
 lastPid=null;
 tweenTo(vols);
 switchTheme(m.th);
-haptic(12);toast("Surprise mix");
+haptic(12);toast(_t("msg_surprise"));
 [].forEach.call(document.querySelectorAll(".chip[data-pid]"),function(c){
 c.classList.remove("sel");c.setAttribute("aria-pressed","false");
 });
@@ -1393,6 +1454,31 @@ var t1=(window.performance&&performance.now)?performance.now():Date.now();
 var elapsed=Math.max((t1-t0)/1000,.001);
 return testDur/elapsed;
 }
+/* Ducking in exports: the live app eases the beds down when a transient layer
+   is loud, driven by the live meters. An offline render has no live meters, so
+   instead we measure the RMS envelope of each already-rendered transient tile
+   and rebuild the timeline envelope from the exact tile schedule. The result is
+   the same ducking curve, computed from the audio that is actually exported. */
+function tileEnv(buf,win){
+var n=Math.ceil(buf.length/win),out=new Float32Array(n),d=buf.getChannelData(0);
+for(var w=0;w<n;w++){
+var st=w*win,en=Math.min(buf.length,st+win),sum=0;
+for(var i=st;i<en;i++){var v=d[i];sum+=v*v;}
+out[w]=Math.sqrt(sum/Math.max(1,en-st));
+}
+return out;
+}
+function duckCurve(mix){
+var n=mix.length,out=new Float32Array(n),env=0,g=1;
+for(var i=0;i<n;i++){
+var r=mix[i];
+env+=(r-env)*(r>env?0.45:0.10);
+var tgt=env>0.22?0.42:1;
+g+=(tgt-g)*(tgt<g?0.30:0.10);
+out[i]=g;
+}
+return out;
+}
 async function preRenderTile(layerId,tileLen,sr,sharedBuf){
 var tc=new OfflineAudioContext(2,Math.ceil(tileLen*sr),sr);
 var built=buildLayer(tc,layerId,sharedBuf);
@@ -1431,7 +1517,7 @@ return bytes>=1048576?(bytes/1048576).toFixed(1)+" MB":Math.round(bytes/1024)+" 
 function refreshExportNote(){
 var n=document.getElementById("expNote");if(!n)return;
 var bits=parseInt((document.getElementById("bitsSel")||{}).value,10)||16;
-n.textContent="Up to 10 min. WAV \u2248"+estSizeText(5)+" per 5 min at "+bits+"-bit. Opus is far smaller and "+(encoderReady?"encodes fast (encoder cached).":"needs a one-time ~230 KB encoder download.");
+n.textContent=_t("exp_note",{s:estSizeText(5),b:bits,o:encoderReady?_t("exp_fast"):_t("exp_slow")});
 }
 async function exportMix(min){
 if(NOAUDIO)return;
@@ -1445,9 +1531,20 @@ if(L[ai].def.id==="mic"){micSkipped=true;continue;}
 activeIdxs.push(ai);
 }
 }
-if(micSkipped)toast("Live microphone input is not included in exports");
+if(micSkipped)toast(_t("msg_micexp"));
+var pendDecode=[];
+for(var pd=0;pd<activeIdxs.length;pd++){
+var pcs=CUSTOM_SOUNDS[L[activeIdxs[pd]].def.id];
+if(pcs&&!pcs.buf&&pcs.raw)pendDecode.push(L[activeIdxs[pd]].def.id);
+}
+if(pendDecode.length){
+setProg("Decoding sounds\u2026");
+await yieldFrame();
+for(var pq=0;pq<pendDecode.length;pq++)await decodeCustom(pendDecode[pq]);
+if(myGen!==exportGen)return;
+}
 if(!activeIdxs.length){
-await uiAlert("Everything's silent right now — turn up at least one layer (and the master volume) before exporting.");
+await uiAlert(_t("msg_allexport"));
 return;
 }
 var fadeEl=document.getElementById("fadeSel"),bitsEl=document.getElementById("bitsSel");
@@ -1482,6 +1579,14 @@ var hpE=oc.createBiquadFilter();hpE.type="highpass";hpE.frequency.value=28;hpE.Q
 var hsE=oc.createBiquadFilter();hsE.type="highshelf";hsE.frequency.value=7200;hsE.gain.value=-2.5;
 var compE=mkComp(oc);
 mg.connect(hpE);hpE.connect(hsE);hsE.connect(compE);compE.connect(oc.destination);
+var duckE=oc.createGain();duckE.gain.value=1;duckE.connect(mg);
+var duckHasBed=false,duckHasTrans=false;
+for(var db=0;db<activeIdxs.length;db++){
+var dbId=L[activeIdxs[db]].def.id;
+if(isBed(dbId))duckHasBed=true;else if(EVENTFUL[dbId])duckHasTrans=true;
+}
+var DUCKON=!!(ducking&&duckHasBed&&duckHasTrans);
+var dWin=Math.max(1,Math.round(sr*0.02)),dN=Math.ceil(dur*sr/dWin),duckMix=DUCKON?new Float32Array(dN):null;
 var revSend=oc.createGain();revSend.gain.value=1;
 var revC=oc.createConvolver();revC.buffer=mkIR(oc,2.6,2.4);
 var revW=oc.createGain();revW.gain.value=spaceVal*.6;
@@ -1496,7 +1601,9 @@ if(myGen!==exportGen)return;
 var i=activeIdxs[k],l=L[i];
 var vg=oc.createGain();vg.gain.value=eff(l)*(l.trimVal||1);
 var pg=oc.createStereoPanner();pg.pan.value=panFor(i);
-vg.connect(pg);pg.connect(mg);pg.connect(revSend);
+vg.connect(pg);
+if(DUCKON&&isBed(l.def.id))pg.connect(duckE);else pg.connect(mg);
+pg.connect(revSend);
 if(EVENTFUL[l.def.id]){
 var tiles=[];
 for(var ti=0;ti<pool;ti++){
@@ -1504,6 +1611,17 @@ setProg("Rendering\u2026 layer "+(k+1)+"/"+activeIdxs.length+" \u00b7 tile "+(ti
 await yieldFrame();
 tiles.push(await preRenderTile(l.def.id,TILE,sr,OBUF));
 if(myGen!==exportGen)return;
+}
+if(DUCKON){
+var lg=eff(l)*(l.trimVal||1),teArr=[];
+for(var q=0;q<tiles.length;q++)teArr.push(tileEnv(tiles[q],dWin));
+for(var q2=0;q2<need;q2++){
+var te2=teArr[q2%pool],off=Math.floor(q2*step*sr/dWin);
+for(var w=0;w<te2.length;w++){
+var idx=off+w;
+if(idx<dN){var v2=te2[w]*lg;if(v2>duckMix[idx])duckMix[idx]=v2;}
+}
+}
 }
 for(var tj=0;tj<need;tj++){
 var srcN=oc.createBufferSource();srcN.buffer=tiles[tj%pool];
@@ -1529,6 +1647,9 @@ await yieldTick();
 }
 }
 if(myGen!==exportGen)return;
+if(DUCKON&&duckMix){
+try{duckE.gain.setValueCurveAtTime(duckCurve(duckMix),0,dur);}catch(e){}
+}
 setProg("Rendering\u2026 (finishing)");
 await yieldFrame();
 var rendered=await oc.startRendering();
@@ -1566,9 +1687,9 @@ var link=document.createElement("a");
 link.href=url;link.download="ambient-"+(slug?slug+"-":"")+min+"min."+ext;
 document.body.appendChild(link);link.click();link.remove();
 setTimeout(function(){URL.revokeObjectURL(url);},4000);
-toast("Exported "+min+" min \u00b7 "+ext.toUpperCase());
+toast(_t("msg_exported",{m:min,e:ext.toUpperCase()}));
 }catch(err){
-if(myGen===exportGen)uiAlert("Export failed. Please try again.");
+if(myGen===exportGen)uiAlert(_t("msg_expfail"));
 }finally{
 if(didPause){try{await a.resume();}catch(e){}}
 if(myGen===exportGen)setProg("");
@@ -1686,7 +1807,7 @@ ov.innerHTML='<div class="modalcard dlgCard" role="dialog" aria-modal="true" ari
 '<p class="dlgMsg">'+esc(msg)+'</p>'+
 (withInput?'<input type="text" id="dlgInput" class="dlgInput" value="'+esc(defVal||"")+'" aria-label="'+esc(title)+'">':'')+
 '<div class="dlgRow">'+(cancelText?'<button type="button" class="dlgBtn ghost" id="dlgCancel">'+esc(cancelText)+'</button>':'')+
-'<button type="button" class="dlgBtn" id="dlgOk">'+esc(okText||"OK")+'</button></div></div>';
+'<button type="button" class="dlgBtn" id="dlgOk">'+esc(okText||_t("ui_ok"))+'</button></div></div>';
 ov.classList.add("open");
 var inp=document.getElementById("dlgInput"),ok=document.getElementById("dlgOk"),ca=document.getElementById("dlgCancel");
 var done=false;
@@ -1703,13 +1824,11 @@ document.addEventListener("keydown",keyh);
 if(inp){inp.focus();inp.select();}else{ok.focus();}
 });
 }
-function uiAlert(msg){return buildDialog(APP_NAME,msg,false,null,"","OK");}
-function uiConfirm(msg){return buildDialog("Please confirm",msg,false,null,"Cancel","OK");}
-function uiPrompt(title,msg,def){return buildDialog(title,msg,true,def,"Cancel","Save");}
+function uiAlert(msg){return buildDialog(APP_NAME,msg,false,null,"",_t("ui_ok"));}
+function uiConfirm(msg){return buildDialog(_t("dlg_confirm"),msg,false,null,_t("ui_cancel"),_t("ui_ok"));}
+function uiPrompt(title,msg,def){return buildDialog(title,msg,true,def,_t("ui_cancel"),_t("ui_save"));}
 function showHelp(){
-buildDialog("Help & shortcuts",
-"Tap a preset for a mood, or Surprise for a random one.\n\nSpace / K  \u2014 play or pause\nM  \u2014 mute everything\nR  \u2014 surprise me\nS  \u2014 silence all layers\nB  \u2014 breathing guide\nV  \u2014 mixer view\n1\u20139  \u2014 apply preset 1\u20139\nCtrl/\u2318+Z  \u2014 undo\n?  \u2014 this help\nEsc  \u2014 close panels\n\nDouble-tap a slider to reset it to zero.\nMore \u25b8 Space adds reverb; Add sound files turns your own audio into layers; Extras downloads the fast Opus encoder.\nEverything runs offline.",
-false,null,"","Close");
+buildDialog(_t("m_help"),helpBody(),false,null,"",_t("aria_close"));
 }
 function stopAll(silent){
 pushUndo();
@@ -1717,7 +1836,7 @@ L.forEach(function(l){l.val=0;l.muted=false;if(l.built)updateGain(l);syncCard(l)
 solo=null;lastMixName="Silence";lastPid=null;
 [].forEach.call(document.querySelectorAll(".chip[data-pid]"),function(c){c.classList.remove("sel");c.setAttribute("aria-pressed","false");});
 updateNowBar();saveSession();
-if(!silent){haptic(8);toast("All layers silenced");}
+if(!silent){haptic(8);toast(_t("msg_silenced"));}
 }
 function applyMasterGain(ramp){
 if(!a)return;
@@ -1730,9 +1849,12 @@ else g.gain.setTargetAtTime(target,a.currentTime,.05);
 function updateNowBar(){
 var el=document.getElementById("nowbar");if(!el)return;
 var act=[];
-L.forEach(function(l){if(l.built&&l.val>0.01&&!l.muted&&(!solo||solo===l.def.id))act.push({n:l.def.n,v:l.val});});
+L.forEach(function(l){
+var v=(tweenTargets&&typeof tweenTargets[l.def.id]==="number")?tweenTargets[l.def.id]:l.val;
+if((l.built||v>0.01)&&v>0.01&&!l.muted&&(!solo||solo===l.def.id))act.push({n:l.def.n,v:v});
+});
 act.sort(function(a,b){return b.v-a.v;});
-if(!act.length){el.innerHTML="<b>Silence</b> \u00b7 tap a preset or raise a slider";return;}
+if(!act.length){el.innerHTML="<b>"+esc(_t("now_silence"))+"</b> \u00b7 "+esc(_t("now_hint"));return;}
 var txt=act.slice(0,4).map(function(a){return a.n;}).join(" \u00b7 ");
 if(act.length>4)txt+=" +"+(act.length-4);
 el.innerHTML="<b>"+esc(lastMixName)+"</b>"+(pomoLabel?" \u00b7 "+esc(pomoLabel):"")+" \u00b7 "+esc(txt);
@@ -1799,7 +1921,7 @@ var payload={v:vols,t:currentTheme,n:lastMixName};
 var url=location.href.split("#")[0]+"#m="+encodeURIComponent(btoa(unescape(encodeURIComponent(JSON.stringify(payload)))));
 function show(u){uiPrompt("Share link","Copy this link to share the mix:",u);}
 if(navigator.clipboard&&navigator.clipboard.writeText){
-navigator.clipboard.writeText(url).then(function(){toast("Share link copied");},function(){show(url);});
+navigator.clipboard.writeText(url).then(function(){toast(_t("msg_linkcopied"));},function(){show(url);});
 }else show(url);
 }
 function loadFromHash(){
@@ -1813,7 +1935,7 @@ for(var k in payload.v){if(typeof payload.v[k]==="number")restoredVols[k]=Math.m
 if(payload.t)switchTheme(payload.t);
 if(payload.n)lastMixName=String(payload.n).slice(0,40);
 applyRestored();
-toast("Mix loaded from link");
+toast(_t("msg_mixlink"));
 return true;
 }catch(e){return false;}
 }
@@ -1823,9 +1945,72 @@ var url=URL.createObjectURL(blob);
 var a=document.createElement("a");a.href=url;a.download="ambient-mixes.json";
 document.body.appendChild(a);a.click();a.remove();
 setTimeout(function(){URL.revokeObjectURL(url);},4000);
-toast("Mixes exported");
+toast(_t("msg_mixexp"));
 }
 function impPresets(){var f=document.getElementById("impFile");if(f)f.click();}
+/* ---- sound packs: a shareable file holding your custom sounds plus the mix ---- */
+function arrToB64(ab){
+var bytes=new Uint8Array(ab),chunk=0x8000,out="",i;
+for(i=0;i<bytes.length;i+=chunk)out+=String.fromCharCode.apply(null,bytes.subarray(i,i+chunk));
+return btoa(out);
+}
+function b64ToArr(b64){
+var bin=atob(b64),n=bin.length,bytes=new Uint8Array(n),i;
+for(i=0;i<n;i++)bytes[i]=bin.charCodeAt(i);
+return bytes.buffer;
+}
+function curVols(){var v={};L.forEach(function(l){if(l.val>0.001)v[l.def.id]=+l.val.toFixed(3);});return v;}
+async function expPack(){
+var ids=Object.keys(CUSTOM_SOUNDS);
+if(!ids.length){await uiAlert(_t("msg_nosounds"));return;}
+var sounds=[],i;
+for(i=0;i<ids.length;i++){
+var rec=null;
+try{rec=await IDB.get("snd:"+ids[i]);}catch(e){}
+if(!rec||!rec.data)continue;
+sounds.push({name:rec.name||"Sound",type:rec.type||"",data:arrToB64(rec.data)});
+}
+var pack={format:"ambient-sound-pack",version:1,app:APP_NAME,ver:APP_VER,
+mix:{name:lastMixName,theme:currentTheme,vols:curVols(),space:spaceVal,beat:beatHz},
+sounds:sounds};
+var blob=new Blob([JSON.stringify(pack)],{type:"application/json"});
+var url=URL.createObjectURL(blob);
+var a=document.createElement("a");a.href=url;a.download="ambient-sound-pack.json";
+document.body.appendChild(a);a.click();a.remove();
+setTimeout(function(){URL.revokeObjectURL(url);},4000);
+toast(_t("msg_packexp"));
+}
+function impPack(){var f=document.getElementById("packFile");if(f)f.click();}
+async function handlePackFile(e){
+var file=e.target.files&&e.target.files[0];
+e.target.value="";
+if(!file)return;
+ensureAudio();
+var data=null;
+try{data=JSON.parse(await file.text());}catch(err){data=null;}
+if(!data||data.format!=="ambient-sound-pack"){await uiAlert(_t("msg_notpack"));return;}
+var added=0,i;
+for(i=0;i<(data.sounds||[]).length;i++){
+var sd=data.sounds[i];
+if(!sd||!sd.data)continue;
+try{
+var ab=b64ToArr(sd.data);
+var nm=String(sd.name||"Sound").slice(0,20)||"Sound";
+var id="u:"+nm.toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"")+"-"+Math.random().toString(36).slice(2,6);
+await IDB.put("snd:"+id,{name:nm,data:ab,type:sd.type||"audio/wav"});
+CUSTOM_SOUNDS[id]={name:nm,raw:ab,type:sd.type||"",buf:null,decoding:null};
+addCustomLayer(id,nm,0);
+added++;
+}catch(err){}
+}
+if(data.mix&&data.mix.vols){
+if(data.mix.name)lastMixName=String(data.mix.name).slice(0,40);
+if(data.mix.theme)switchTheme(data.mix.theme);
+tweenTo(data.mix.vols);
+}
+updateExtrasUI();updateNowBar();
+toast(_t("msg_packimp",{n:added}));
+}
 function handleImportFile(e){
 var file=e.target.files&&e.target.files[0];if(!file)return;
 var rd=new FileReader();
@@ -1841,11 +2026,11 @@ if(list.length>=20)return;
 list.push({name:String(m.name).slice(0,30),vols:m.vols,theme:m.theme||"default"});added++;
 });
 if(saveCustom(list)){buildProfiles();toast(added+(added===1?" mix":" mixes")+" imported");}
-else uiAlert("Could not save the imported mixes.");
-}catch(err){uiAlert("That file could not be read as a mix file.");}
+else uiAlert(_t("msg_savefail"));
+}catch(err){uiAlert(_t("msg_notmix"));}
 e.target.value="";
 };
-rd.onerror=function(){uiAlert("Could not read that file.");};
+rd.onerror=function(){uiAlert(_t("msg_badfile"));};
 rd.readAsText(file);
 }
 
@@ -1856,15 +2041,15 @@ function curVols(){var o={};L.forEach(function(l){if(l.val>0.001)o[l.def.id]=+l.
 function snapshotMix(){return {v:curVols(),t:currentTheme,n:lastMixName};}
 function pushUndo(){undoSlot=snapshotMix();}
 function undo(){
-if(!undoSlot){toast("Nothing to undo");return;}
+if(!undoSlot){toast(_t("msg_noundo"));return;}
 var s=undoSlot;undoSlot=null;
 lastMixName=s.n||"Custom mix";
 tweenTo(s.v);switchTheme(s.t);
-toast("Undone");haptic(8);
+toast(_t("msg_undone"));haptic(8);
 }
-function abSave(){abA=snapshotMix();toast("Snapshot A saved");}
+function abSave(){abA=snapshotMix();toast(_t("msg_snapA"));}
 function abToggle(){
-if(!abA){toast("Save snapshot A first");return;}
+if(!abA){toast(_t("msg_absave"));return;}
 if(!abB)abB=snapshotMix();
 abIsA=!abIsA;
 var m=abIsA?abA:abB;
@@ -1879,20 +2064,20 @@ toast(on?"Mixer view":"Card view");
 }
 function togglePomodoro(){
 var btn=document.getElementById("pomoBtn");
-if(pomo){clearInterval(pomo.int);pomo=null;pomoLabel="";if(btn)btn.textContent="Start Pomodoro";toast("Pomodoro stopped");updateNowBar();return;}
+if(pomo){clearInterval(pomo.int);pomo=null;pomoLabel="";if(btn)btn.textContent="Start Pomodoro";toast(_t("msg_pomostopped"));updateNowBar();return;}
 pomo={phase:"focus",end:Date.now()+25*60000,int:null};
 pomo.int=setInterval(pomoTick,1000);
 if(btn)btn.textContent="Stop Pomodoro";
 applyProfileId("focus");
 pomoTick();
-toast("Pomodoro: 25 min focus");
+toast(_t("msg_pomofocus"));
 }
 function pomoTick(){
 if(!pomo)return;
 var rem=pomo.end-Date.now();
 if(rem<=0){
-if(pomo.phase==="focus"){pomo.phase="break";pomo.end=Date.now()+5*60000;applyProfileId("oceancalm");toast("Pomodoro: 5 min break");}
-else{pomo.phase="focus";pomo.end=Date.now()+25*60000;applyProfileId("focus");toast("Pomodoro: 25 min focus");}
+if(pomo.phase==="focus"){pomo.phase="break";pomo.end=Date.now()+5*60000;applyProfileId("oceancalm");toast(_t("msg_pomobreak"));}
+else{pomo.phase="focus";pomo.end=Date.now()+25*60000;applyProfileId("focus");toast(_t("msg_pomofocus"));}
 rem=pomo.end-Date.now();
 }
 var m=Math.floor(rem/60000),s=Math.floor((rem%60000)/1000);
@@ -1904,7 +2089,7 @@ beatHz=hz;
 var l=findL("binaural");
 if(l&&l.built&&l.built.beat&&a)l.built.beat.frequency.setTargetAtTime((l.built.beatBase||180)+hz,a.currentTime,.1);
 try{localStorage.setItem("amb_beat",String(hz));}catch(e){}
-toast("Binaural beat "+hz+" Hz");
+toast(_t("msg_binaural",{v:hz}));
 }
 async function refreshSinks(){
 var sel=document.getElementById("sinkSel");if(!sel)return;
@@ -1926,7 +2111,7 @@ if(!a)return;
 g.gain.cancelScheduledValues(a.currentTime);
 g.gain.setValueAtTime(0,a.currentTime);
 g.gain.linearRampToValueAtTime(mVal,a.currentTime+dur);
-toast("Ramping up over "+min+" min");
+toast(_t("msg_ramp",{v:min}));
 },600);
 }
 async function toggleMic(){
@@ -1937,11 +2122,11 @@ try{if(micLayer.pan)micLayer.pan.disconnect();}catch(e){}
 var ix=L.indexOf(micLayer);if(ix>=0)L.splice(ix,1);
 var c=document.querySelector('.card[data-id="mic"]');if(c)c.remove();
 micLayer=null;micStream=null;
-buildMixer();updateNowBar();toast("Microphone off");
+buildMixer();updateNowBar();toast(_t("msg_micoff"));
 var mb=document.getElementById("micBtn");if(mb)mb.textContent="Microphone input";
 return;
 }
-if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia){toast("Microphone not available");return;}
+if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia){toast(_t("msg_micna"));return;}
 try{
 ensureAudio();
 micStream=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:false,noiseSuppression:false,autoGainControl:false}});
@@ -1958,9 +2143,9 @@ grid.insertAdjacentHTML("beforeend",cardHTML(def));
 wireControls(grid);
 buildMixer();updateNowBar();
 var mb=document.getElementById("micBtn");if(mb)mb.textContent="Microphone off";
-toast("Microphone on \u2014 live input added as a layer");
+toast(_t("msg_micon"));
 haptic(10);
-}catch(e){micStream=null;toast("Microphone permission denied");}
+}catch(e){micStream=null;toast(_t("msg_micdenied"));}
 }
 var breatheTO=null,breatheRunning=false,bIdx=0;
 var BPAT={
@@ -2111,16 +2296,19 @@ var c=document.getElementById("clrExtrasBtn");
 if(c)c.style.display=enc?"block":"none";
 }).catch(function(){});
 }
-function addCustomLayer(id,name){
+function markOrderDirty(){orderDirty=true;}
+function addCustomLayer(id,name,initVal){
 var def={id:id,n:name,h:200};
-var l={def:def,i:L.length,built:null,trim:null,trimVal:TRIM_CACHE[id]||1,vol:null,pan:null,val:.5,muted:false,cursor:0};
+var l={def:def,i:L.length,built:null,trim:null,trimVal:TRIM_CACHE[id]||1,vol:null,pan:null,val:(typeof initVal==="number"?initVal:.5),muted:false,cursor:0};
 if(restoredVols&&typeof restoredVols[id]==="number"){l.val=restoredVols[id];delete restoredVols[id];}
 L.push(l);
 var grid=document.getElementById("grid");
 grid.insertAdjacentHTML("beforeend",cardHTML(def));
+markOrderDirty();
 wireControls(grid);wireDrag(grid);
 buildMixer();
-ensureLayer(l);updateGain(l);syncCard(l);
+if(l.val>0.01)ensureLayer(l);
+updateGain(l);syncCard(l);
 updateNowBar();
 }
 async function restoreSounds(){
@@ -2133,13 +2321,27 @@ if(!rec||!rec.data)continue;
 var id=String(ks[i]).slice(4);
 if(CUSTOM_SOUNDS[id]||findL(id))continue;
 try{
-var buf=await a.decodeAudioData(rec.data.slice(0));
-CUSTOM_SOUNDS[id]={name:rec.name,buf:buf};
-addCustomLayer(id,rec.name);
+CUSTOM_SOUNDS[id]={name:rec.name,raw:rec.data,type:rec.type||"",buf:null,decoding:null};
+addCustomLayer(id,rec.name,0);
 }catch(e){}
 }
 if(ks.length)toast(ks.length+" custom sound"+(ks.length===1?"":"s")+" loaded");
 updateExtrasUI();
+}catch(e){}
+if(orderDirty)applySavedOrderNow();
+}
+/* After custom sounds are restored, replay the saved card order so a sound you
+   added once keeps the position you gave it. */
+function applySavedOrderNow(){
+try{
+var ids=JSON.parse(localStorage.getItem("amb_order")||"[]");
+if(!Array.isArray(ids)||!ids.length)return;
+var grid=document.getElementById("grid");
+ids.forEach(function(id){
+var c=grid.querySelector('.card[data-id="'+CSS.escape(id)+'"]');
+if(c)grid.appendChild(c);
+});
+applyOrder();
 }catch(e){}
 }
 async function addSoundFiles(files){
@@ -2157,10 +2359,37 @@ var buf=await a.decodeAudioData(ab.slice(0));
 CUSTOM_SOUNDS[id]={name:name,buf:buf};
 addCustomLayer(id,name);
 added++;
-}catch(e){toast("Could not read "+f.name);}
+}catch(e){toast(_t("msg_cantread",{v:f.name}));}
 }
 if(added)toast(added+" sound"+(added===1?"":"s")+" added \u2014 cached for next time");
 updateExtrasUI();
+}
+/* Custom sounds are kept in IndexedDB as raw bytes and only decoded into an
+   AudioBuffer when the layer is first used. Decoded audio is far larger than
+   the file it came from, so decoding everything up front was the single biggest
+   memory cost in the app. */
+function detachLayer(l){
+var b=l.built;if(!b)return;
+try{if(b.out)b.out.disconnect();}catch(e){}
+try{if(l.trim)l.trim.disconnect();}catch(e){}
+try{if(l.vol)l.vol.disconnect();}catch(e){}
+try{if(l.pan)l.pan.disconnect();}catch(e){}
+try{if(l.analyser)l.analyser.disconnect();}catch(e){}
+}
+function decodeCustom(id){
+var cs=CUSTOM_SOUNDS[id];
+if(!cs)return Promise.resolve(null);
+if(cs.buf)return Promise.resolve(cs.buf);
+if(cs.decoding)return cs.decoding;
+if(!cs.raw)return Promise.resolve(null);
+var raw=cs.raw;
+cs.decoding=a.decodeAudioData(raw.slice(0)).then(function(buf){
+cs.buf=buf;cs.raw=null;cs.decoding=null;
+var l=findL(id);
+if(l){detachLayer(l);l.built=null;ensureLayer(l);updateGain(l);}
+return buf;
+}).catch(function(){cs.decoding=null;return null;});
+return cs.decoding;
 }
 async function removeSound(id){
 var l=findL(id);
@@ -2173,7 +2402,741 @@ delete CUSTOM_SOUNDS[id];
 try{await IDB.del("snd:"+id);}catch(e){}
 var c=document.querySelector('.card[data-id="'+CSS.escape(id)+'"]');if(c)c.remove();
 buildMixer();updateNowBar();updateExtrasUI();
-toast("Sound removed");
+toast(_t("msg_soundremoved"));
+}
+
+var STR={
+"en": {
+"cat_All": "All",
+"cat_Sleep": "Sleep",
+"cat_Focus": "Focus",
+"cat_Relax": "Relax",
+"cat_Nature": "Nature",
+"cat_Urban": "Urban",
+"ui_breathe": "Breathing guide",
+"ui_ready": "Ready",
+"ui_pattern": "Pattern",
+"p_box": "Box 4-4-4-4",
+"p_relax478": "Relax 4-7-8",
+"p_calm46": "Calm 4-6",
+"ui_start": "Start",
+"ui_stop": "Stop",
+"ui_vol": "Vol",
+"t15": "15 min",
+"t30": "30 min",
+"t45": "45 min",
+"t60": "60 min",
+"ui_ramp": "Gentle ramp-up (10 min)",
+"ui_canceltimer": "Cancel timer",
+"e5": "5 min",
+"e10": "10 min",
+"ui_fade": "Fade",
+"f05": "0.5 s",
+"f15": "1.5 s",
+"f3": "3 s",
+"f6": "6 s",
+"ui_wavdepth": "WAV depth",
+"b16": "16-bit",
+"b24": "24-bit",
+"ui_opus": "Compress to Opus",
+"ui_pauseexp": "Pause playback while exporting",
+"ui_space": "Space",
+"ui_beat": "Beat",
+"bd": "Delta 2.5 Hz",
+"bt": "Theta 6 Hz",
+"ba": "Alpha 10 Hz",
+"bb": "Beta 16 Hz",
+"bg": "Gamma 40 Hz",
+"ui_output": "Output",
+"ui_accent": "Accent",
+"lang_label": "Language",
+"m_silence": "Silence all layers",
+"m_mixer": "Mixer view",
+"m_mic": "Microphone input",
+"m_pomo": "Start Pomodoro",
+"m_absave": "Save snapshot A",
+"m_abtoggle": "A/B toggle",
+"m_undo": "Undo",
+"m_recal": "Re-measure levels",
+"m_share": "Copy share link",
+"m_export": "Export my mixes",
+"m_import": "Import mixes…",
+"m_help": "Help & shortcuts",
+"m_autolevel": "Auto-level layers",
+"m_duck": "Duck beds under loud events",
+"m_extras": "Extras",
+"x_checking": "Checking…",
+"x_download": "Download Opus encoder",
+"x_clear": "Clear cached extras",
+"m_addsound": "Add sound files…",
+"m_install": "Install app",
+"ui_cancel": "Cancel",
+"aria_output": "Audio output",
+"aria_beat": "Binaural beat",
+"aria_pattern": "Breathing pattern",
+"aria_close": "Close",
+"aria_export": "Export",
+"aria_fade": "Fade length",
+"aria_master": "Master volume",
+"aria_more": "More options",
+"aria_play": "Play",
+"aria_cats": "Preset categories",
+"aria_space": "Reverb space",
+"aria_search": "Search mixes",
+"ph_search": "Search mixes…",
+"aria_sleep": "Sleep timer",
+"aria_bits": "WAV bit depth",
+"tip_breathe": "Tip: pair this with the Heartbeat layer or the Deep Calm mix.",
+"now_silence": "Silence",
+"now_hint": "tap a preset or raise a slider",
+"ui_ok": "OK",
+"ui_save": "Save",
+"dlg_confirm": "Please confirm",
+"aria_mute": "Mute",
+"aria_solo": "Solo",
+"aria_remove": "Remove",
+"aria_reorder": "Reorder",
+"aria_volume": "volume",
+"exp_note": "Up to 10 min. WAV ≈ {s} per 5 min at {b}-bit. Opus is far smaller and {o}",
+"exp_fast": "encodes fast (encoder cached).",
+"exp_slow": "needs a one-time ~230 KB encoder download.",
+"help_intro": "Tap a preset for a mood, or Surprise for a random one.",
+"help_play": "Space / K  — play or pause",
+"help_mute": "M  — mute everything",
+"help_rand": "R  — surprise me",
+"help_silence": "S  — silence all layers",
+"help_breathe": "B  — breathing guide",
+"help_mixer": "V  — mixer view",
+"help_presets": "1–9  — apply preset 1–9",
+"help_undo": "Ctrl/⌘+Z  — undo",
+"help_this": "?  — this help",
+"help_esc": "Esc  — close panels",
+"help_dbl": "Double-tap a slider to reset it to zero.",
+"help_more": "More ▸ Space adds reverb; Add sound files turns your own audio into layers; Extras downloads the fast Opus encoder.",
+"help_offline": "Everything runs offline.",
+"msg_silenced": "All layers silenced",
+"msg_installed": "App installed",
+"msg_clrcleared": "Cached encoder cleared",
+"msg_cantread": "Could not read {v}",
+"msg_badfile": "Could not read that file.",
+"msg_savefail": "Could not save the imported mixes.",
+"msg_outfail": "Could not switch output",
+"msg_dlfail": "Download failed — check your connection",
+"msg_allexport": "Everything's silent right now — turn up at least one layer (and the master volume) before exporting.",
+"msg_expfail": "Export failed. Please try again.",
+"msg_exported": "Exported {m} min · {e}",
+"msg_installing": "Installing…",
+"msg_micexp": "Live microphone input is not included in exports",
+"msg_micna": "Microphone not available",
+"msg_micoff": "Microphone off",
+"msg_micon": "Microphone on — live input added as a layer",
+"msg_micdenied": "Microphone permission denied",
+"msg_mixdel": "Mix deleted — Undo to restore",
+"msg_mixlink": "Mix loaded from link",
+"msg_mixsaved": "Mix saved",
+"msg_mixexp": "Mixes exported",
+"msg_noundo": "Nothing to undo",
+"msg_opusready": "Opus encoder ready — exports now encode fast",
+"msg_ordersaved": "Order saved",
+"msg_outchanged": "Output changed",
+"msg_pomostopped": "Pomodoro stopped",
+"msg_pomofocus": "Pomodoro: 25 min focus",
+"msg_pomobreak": "Pomodoro: 5 min break",
+"msg_ramp": "Ramping up over {v} min",
+"msg_recal": "Re-measuring levels…",
+"msg_slow": "Rendering looks slow on this device — this {m}-minute export could take roughly {e} minute(s). Continue?",
+"msg_absave": "Save snapshot A first",
+"msg_linkcopied": "Share link copied",
+"msg_snapA": "Snapshot A saved",
+"msg_soundremoved": "Sound removed",
+"msg_surprise": "Surprise mix",
+"msg_notmix": "That file could not be read as a mix file.",
+"msg_undone": "Undone",
+"msg_a2hs": "Use your browser menu ▸ Add to Home Screen",
+"msg_mixlimit": "You have reached the 20-mix limit. Delete one first.",
+"msg_binaural": "Binaural beat {v} Hz",
+"msg_langset": "Language changed",
+"m_packexp": "Export sound pack",
+"m_packimp": "Import sound pack…",
+"msg_nosounds": "No custom sounds to pack yet.",
+"msg_packexp": "Sound pack exported",
+"msg_packimp": "Sound pack imported — {n} sound(s) added",
+"msg_notpack": "That is not a sound pack file.",
+"layer_rain": "Rain",
+"layer_thunder": "Thunder",
+"layer_cafe": "Cafe",
+"layer_train": "Train",
+"layer_wind": "Wind",
+"layer_fire": "Fire",
+"layer_birds": "Birds",
+"layer_ocean": "Ocean",
+"layer_white": "White Noise",
+"layer_pink": "Pink Noise",
+"layer_brown": "Brown Noise",
+"layer_forest": "Forest",
+"layer_typing": "Typing",
+"layer_clock": "Clock",
+"layer_catpurr": "Cat Purr",
+"layer_cosmic": "Cosmic Drone",
+"layer_walking": "Walking",
+"layer_traffic": "Traffic",
+"layer_crickets": "Crickets",
+"layer_stream": "Stream",
+"layer_chimes": "Wind Chimes",
+"layer_binaural": "Binaural Beat",
+"layer_heartbeat": "Heartbeat",
+"layer_fan": "Fan",
+"layer_vinyl": "Vinyl Crackle",
+"preset_cozyrain": "Cozy Rain",
+"preset_storm": "Thunderstorm",
+"preset_cafe": "Busy Cafe",
+"preset_oceancalm": "Ocean Calm",
+"preset_forestnight": "Forest Night",
+"preset_focus": "Deep Focus",
+"preset_commute": "City Commute",
+"preset_catcafe": "Cat Cafe",
+"preset_countrywalk": "Country Walk",
+"preset_nightdrive": "Late Night Drive",
+"preset_cozystudy": "Cozy Study",
+"preset_meditation": "Meditation",
+"preset_deepcalm": "Deep Calm",
+"preset_riverside": "Riverside",
+"preset_rainoncar": "Rain on Car",
+"preset_library": "Library",
+"preset_deepsleep": "Deep Sleep",
+"preset_airport": "Airport Lounge",
+"preset_summernight": "Summer Night",
+"preset_rainforest": "Rainforest",
+"preset_campfire": "Campfire",
+"preset_laundromat": "Laundromat",
+"preset_seaside": "Seaside",
+"preset_studyhall": "Study Hall",
+"preset_nightbus": "Night Bus",
+"preset_zen": "Zen Garden",
+"preset_focusbeats": "Focus Beats",
+"preset_sleepbeats": "Sleep Beats",
+"preset_monsoon": "Monsoon Evening",
+"preset_rainwindow": "Rain on Window",
+"preset_dawn": "Dawn Chorus",
+"preset_winter": "Winter Night",
+"preset_summer": "Summer Afternoon",
+"preset_temple": "Temple Bells",
+"preset_spa": "Spa",
+"preset_exam": "Exam Hall"
+},
+"hi": {
+"cat_All": "ऑल",
+"cat_Sleep": "स्लीप",
+"cat_Focus": "फोकस",
+"cat_Relax": "रिलैक्स",
+"cat_Nature": "नेचर",
+"cat_Urban": "अर्बन",
+"ui_breathe": "ब्रीदिंग गाइड",
+"ui_ready": "रेडी",
+"ui_pattern": "पैटर्न",
+"p_box": "बॉक्स 4-4-4-4",
+"p_relax478": "रिलैक्स 4-7-8",
+"p_calm46": "शांत 4-6",
+"ui_start": "स्टार्ट",
+"ui_stop": "स्टॉप",
+"ui_vol": "वॉल",
+"t15": "15 मिनट",
+"t30": "30 मिनट",
+"t45": "45 मिनट",
+"t60": "60 मिनट",
+"ui_ramp": "जेंटल रैम्प-अप (10 मिनट)",
+"ui_canceltimer": "कैंसिल टाइमर",
+"e5": "5 मिनट",
+"e10": "10 मिनट",
+"ui_fade": "फेड",
+"f05": "0.5 s",
+"f15": "1.5 s",
+"f3": "3 s",
+"f6": "6 s",
+"ui_wavdepth": "WAV डेप्थ",
+"b16": "16-बिट",
+"b24": "24-बिट",
+"ui_opus": "कम्प्रैस टू ओपस",
+"ui_pauseexp": "एक्सपोर्ट करते समय प्लेबैक पॉज़ करें",
+"ui_space": "स्पेस",
+"ui_beat": "बीट",
+"bd": "डेल्टा 2.5 Hz",
+"bt": "थीटा 6 Hz",
+"ba": "अल्फा 10 Hz",
+"bb": "बीटा 16 Hz",
+"bg": "गामा 40 Hz",
+"ui_output": "आउटपुट",
+"ui_accent": "एक्सेंट",
+"lang_label": "भाषा",
+"m_silence": "सभी लेयर्स म्यूट करें",
+"m_mixer": "मिक्सर व्यू",
+"m_mic": "माइक्रोफोन इनपुट",
+"m_pomo": "पॉमोडोरो शुरू करें",
+"m_absave": "स्नैपशॉट A सेव करें",
+"m_abtoggle": "A/B टॉगल",
+"m_undo": "अनडू",
+"m_recal": "लेवल्स फिर से मापें",
+"m_share": "शेयर लिंक कॉपी करें",
+"m_export": "मेरे मिक्स एक्सपोर्ट करें",
+"m_import": "मिक्स इम्पोर्ट करें…",
+"m_help": "मदद और शॉर्टकट्स",
+"m_autolevel": "लेयर्स ऑटो-लेवल",
+"m_duck": "तेज़ आवाज़ वाली घटनाओं के नीचे बेड डक करें",
+"m_extras": "एक्स्ट्रा",
+"x_checking": "चेक हो रहा है…",
+"x_download": "ओपस एनकोडर डाउनलोड करें",
+"x_clear": "कैश किए गए एक्स्ट्रा क्लियर करें",
+"m_addsound": "साउंड फ़ाइलें जोड़ें…",
+"m_install": "ऐप इंस्टॉल करें",
+"ui_cancel": "कैंसिल करें",
+"aria_output": "ऑडियो आउटपुट",
+"aria_beat": "बाइनोरल बीट",
+"aria_pattern": "सांस लेने का पैटर्न",
+"aria_close": "क्लोज़",
+"aria_export": "एक्सपोर्ट",
+"aria_fade": "फेड लेंथ",
+"aria_master": "मास्टर वॉल्यूम",
+"aria_more": "और विकल्प",
+"aria_play": "प्ले",
+"aria_cats": "प्रीसेट कैटेगरी",
+"aria_space": "रिवर्ब स्पेस",
+"aria_search": "मिक्स सर्च करें",
+"ph_search": "मिक्स सर्च करें…",
+"aria_sleep": "स्लीप टाइमर",
+"aria_bits": "WAV बिट डेप्थ",
+"tip_breathe": "टिप: इसे हार्टबीट लेयर या डीप कालम मिक्स के साथ जोड़ें।",
+"now_silence": "मौन",
+"now_hint": "प्रीसेट टैप करें या स्लाइडर ऊपर करें",
+"ui_ok": "OK",
+"ui_save": "सेव करें",
+"dlg_confirm": "कृपया पुष्टि करें",
+"aria_mute": "म्यूट",
+"aria_solo": "सोलो",
+"aria_remove": "हटाएं",
+"aria_reorder": "पुन: व्यवस्थित करें",
+"aria_volume": "वॉल्यूम",
+"exp_note": "10 मिनट तक WAV ≈ {s} प्रति 5 मिनट {b}-bit पर। Opus बहुत छोटा है और {o}",
+"exp_fast": "तेज़ी से एन्कोड करता है (एनकोडर कैश्ड है)।",
+"exp_slow": "इसके लिए एक बार ~230 KB का एनकोडर डाउनलोड करना पड़ता है।",
+"help_intro": "मूड के लिए कोई प्रीसेट टैप करें, या रैंडम के लिए Surprise चुनें।",
+"help_play": "Space / K  — प्ले या पॉज़",
+"help_mute": "M  — सब कुछ म्यूट करें",
+"help_rand": "R  — मुझे सरप्राइज़ दें",
+"help_silence": "S  — सभी लेयर्स म्यूट करें",
+"help_breathe": "B  — ब्रीदिंग गाइड",
+"help_mixer": "V  — मिक्सर व्यू",
+"help_presets": "1–9  — प्रीसेट 1–9 लागू करें",
+"help_undo": "Ctrl/⌘+Z  — अनडू",
+"help_this": "?  — यह मदद",
+"help_esc": "Esc  — पैनल बंद करें",
+"help_dbl": "स्लाइडर को ज़ीरो पर रीसेट करने के लिए उस पर डबल-टैप करें।",
+"help_more": "More ▸ Space से रीवरब जुड़ता है; Add sound files से आपकी अपनी ऑडियो लेयर्स बनती हैं; Extras से तेज़ Opus एनकोडर डाउनलोड होता है।",
+"help_offline": "सब कुछ ऑफलाइन चलता है।",
+"msg_silenced": "सभी लेयर्स म्यूट",
+"msg_installed": "ऐप इंस्टॉल हो गया",
+"msg_clrcleared": "कैश किया गया एन्कोडर क्लियर",
+"msg_cantread": "{v} को पढ़ नहीं सका",
+"msg_badfile": "उस फ़ाइल को पढ़ नहीं सका।",
+"msg_savefail": "इम्पोर्ट किए गए मिक्स सेव नहीं कर सके।",
+"msg_outfail": "आउटपुट स्विच नहीं कर सके",
+"msg_dlfail": "डाउनलोड फेल — अपना कनेक्शन चेक करें",
+"msg_allexport": "अभी सब कुछ म्यूट है — एक्सपोर्ट करने से पहले कम से कम एक लेयर (और मास्टर वॉल्यूम) चालू करें।",
+"msg_expfail": "एक्सपोर्ट फेल हो गया। कृपया फिर से कोशिश करें।",
+"msg_exported": "एक्सपोर्ट हो गया {m} मिनट · {e}",
+"msg_installing": "इंस्टॉल हो रहा है…",
+"msg_micexp": "लाइव माइक्रोफोन इनपुट एक्सपोर्ट में शामिल नहीं है",
+"msg_micna": "माइक्रोफोन उपलब्ध नहीं है",
+"msg_micoff": "माइक्रोफोन बंद है",
+"msg_micon": "माइक्रोफोन चालू है — लाइव इनपुट एक लेयर के रूप में जुड़ गया",
+"msg_micdenied": "माइक्रोफोन की परमिशन नहीं दी गई",
+"msg_mixdel": "मिक्स डिलीट हो गया — वापस लाने के लिए अनडू करें",
+"msg_mixlink": "लिंक से मिक्स लोड हो गया",
+"msg_mixsaved": "मिक्स सेव हो गया",
+"msg_mixexp": "मिक्स एक्सपोर्ट हो गए",
+"msg_noundo": "अनडू करने के लिए कुछ नहीं है",
+"msg_opusready": "ऑपस एन्कोडर तैयार है — अब एक्सपोर्ट तेज़ी से एन्कोड होंगे",
+"msg_ordersaved": "ऑर्डर सेव हो गया",
+"msg_outchanged": "आउटपुट बदल गया",
+"msg_pomostopped": "पोमोडोरो रुक गया",
+"msg_pomofocus": "पोमोडोरो: 25 मिनट फोकस",
+"msg_pomobreak": "पोमोडोरो: 5 मिनट ब्रेक",
+"msg_ramp": "{v} मिनट में रैंप अप हो रहा है",
+"msg_recal": "लेवल फिर से नापे जा रहे हैं…",
+"msg_slow": "इस डिवाइस पर रेंडरिंग धीमी लग रही है — इस {m}-मिनट के एक्सपोर्ट में लगभग {e} मिनट लग सकते हैं। जारी रखें?",
+"msg_absave": "पहले स्नैपशॉट A सेव करें",
+"msg_linkcopied": "शेयर लिंक कॉपी हो गया",
+"msg_snapA": "स्नैपशॉट A सेव हो गया",
+"msg_soundremoved": "साउंड हटा दिया गया",
+"msg_surprise": "सरप्राइज़ मिक्स",
+"msg_notmix": "उस फ़ाइल को मिक्स फ़ाइल के रूप में नहीं पढ़ा जा सका।",
+"msg_undone": "अनडू हो गया",
+"msg_a2hs": "अपने ब्राउज़र मेनू का इस्तेमाल करें ▸ होम स्क्रीन में जोड़ें",
+"msg_mixlimit": "आप 20-मिक्स की लिमिट तक पहुँच गए हैं। पहले एक डिलीट करें।",
+"msg_binaural": "बाइनोरल बीट {v} Hz",
+"msg_langset": "भाषा बदल दी गई",
+"m_packexp": "साउंड पैक एक्सपोर्ट करें",
+"m_packimp": "साउंड पैक इम्पोर्ट करें…",
+"msg_nosounds": "पैक करने के लिए अभी कोई कस्टम साउंड नहीं है।",
+"msg_packexp": "साउंड पैक एक्सपोर्ट हो गया",
+"msg_packimp": "साउंड पैक इम्पोर्ट हो गया — {n} साउंड जोड़े गए",
+"msg_notpack": "यह साउंड पैक फ़ाइल नहीं है।",
+"layer_rain": "बारिश",
+"layer_thunder": "गर्जना",
+"layer_cafe": "कैफे",
+"layer_train": "ट्रेन",
+"layer_wind": "हवा",
+"layer_fire": "आग",
+"layer_birds": "पक्षी",
+"layer_ocean": "महासागर",
+"layer_white": "सफ़ेद शोर",
+"layer_pink": "गुलाबी शोर",
+"layer_brown": "भूरा शोर",
+"layer_forest": "जंगल",
+"layer_typing": "टाइपिंग",
+"layer_clock": "घड़ी",
+"layer_catpurr": "बिल्ली की गुर्राहट",
+"layer_cosmic": "कॉस्मिक ड्रोन",
+"layer_walking": "चलना",
+"layer_traffic": "ट्रैफ़िक",
+"layer_crickets": "झींगुर",
+"layer_stream": "झरना",
+"layer_chimes": "विंड चाइम",
+"layer_binaural": "बाइनोरल बीट",
+"layer_heartbeat": "धड़कन",
+"layer_fan": "पंखा",
+"layer_vinyl": "विनाइल क्रैकल",
+"preset_cozyrain": "आरामदायक बारिश",
+"preset_storm": "तूफ़ान",
+"preset_cafe": "खचाखच भरा कैफे",
+"preset_oceancalm": "शांत महासागर",
+"preset_forestnight": "जंगल की रात",
+"preset_focus": "गहन एकाग्रता",
+"preset_commute": "शहर का सफर",
+"preset_catcafe": "बिल्ली वाला कैफे",
+"preset_countrywalk": "गाँव की सैर",
+"preset_nightdrive": "देर रात की ड्राइव",
+"preset_cozystudy": "आरामदायक पढ़ाई",
+"preset_meditation": "ध्यान",
+"preset_deepcalm": "गहरी शांति",
+"preset_riverside": "नदी के किनारे",
+"preset_rainoncar": "कार पर बारिश",
+"preset_library": "लाइब्रेरी",
+"preset_deepsleep": "गहरी नींद",
+"preset_airport": "एयरपोर्ट लाउंज",
+"preset_summernight": "गर्मियों की रात",
+"preset_rainforest": "रेनफॉरेस्ट",
+"preset_campfire": "कैंपफायर",
+"preset_laundromat": "लॉन्ड्रोमैट",
+"preset_seaside": "समुद्र का किनारा",
+"preset_studyhall": "स्टडी हॉल",
+"preset_nightbus": "रात की बस",
+"preset_zen": "ज़ेन गार्डन",
+"preset_focusbeats": "फोकस बीट्स",
+"preset_sleepbeats": "स्लीप बीट्स",
+"preset_monsoon": "मानसून की शाम",
+"preset_rainwindow": "खिड़की पर बारिश",
+"preset_dawn": "भोर की आवाज़ें",
+"preset_winter": "सर्दियों की रात",
+"preset_summer": "गर्मियों की दोपहर",
+"preset_temple": "मंदिर की घंटियाँ",
+"preset_spa": "स्पा",
+"preset_exam": "परीक्षा हॉल"
+},
+"gu": {
+"cat_All": "બધા",
+"cat_Sleep": "ઊંઘ",
+"cat_Focus": "ધ્યાન",
+"cat_Relax": "આરામ",
+"cat_Nature": "પ્રકૃતિ",
+"cat_Urban": "શહેરી",
+"ui_breathe": "શ્વાસ લેવાની માર્ગદર્શિકા",
+"ui_ready": "તૈયાર",
+"ui_pattern": "પેટર્ન",
+"p_box": "બોક્સ 4-4-4-4",
+"p_relax478": "આરામ 4-7-8",
+"p_calm46": "શાંત 4-6",
+"ui_start": "શરૂ કરો",
+"ui_stop": "બંધ કરો",
+"ui_vol": "વોલ્યુમ",
+"t15": "15 મિનિટ",
+"t30": "30 મિનિટ",
+"t45": "45 મિનિટ",
+"t60": "60 મિનિટ",
+"ui_ramp": "હળવો વધારો (10 મિનિટ)",
+"ui_canceltimer": "ટાઈમર રદ કરો",
+"e5": "5 મિનિટ",
+"e10": "10 મિનિટ",
+"ui_fade": "ફેડ",
+"f05": "0.5 s",
+"f15": "1.5 s",
+"f3": "3 s",
+"f6": "6 s",
+"ui_wavdepth": "WAV ડેપ્થ",
+"b16": "16-bit",
+"b24": "24-bit",
+"ui_opus": "Opus માં કમ્પ્રેસ કરો",
+"ui_pauseexp": "એક્સપોર્ટ કરતી વખતે પ્લેબેક અટકાવો",
+"ui_space": "સ્પેસ",
+"ui_beat": "બીટ",
+"bd": "ડેલ્ટા 2.5 Hz",
+"bt": "થીટા 6 Hz",
+"ba": "આલ્ફા 10 Hz",
+"bb": "બીટા 16 Hz",
+"bg": "ગામા 40 Hz",
+"ui_output": "આઉટપુટ",
+"ui_accent": "એક્સેન્ટ",
+"lang_label": "ભાષા",
+"m_silence": "બધા લેયર્સને શાંત કરો",
+"m_mixer": "મિક્સર વ્યૂ",
+"m_mic": "માઇક્રોફોન ઇનપુટ",
+"m_pomo": "પોમોડોરો શરૂ કરો",
+"m_absave": "સ્નેપશોટ A સેવ કરો",
+"m_abtoggle": "A/B ટૉગલ",
+"m_undo": "અનડૂ",
+"m_recal": "લેવલ ફરીથી માપો",
+"m_share": "શેર લિંક કૉપિ કરો",
+"m_export": "મારા મિક્સ એક્સપોર્ટ કરો",
+"m_import": "મિક્સ ઇમ્પોર્ટ કરો…",
+"m_help": "મદદ અને શૉર્ટકટ્સ",
+"m_autolevel": "લેયર્સનું ઓટો-લેવલ",
+"m_duck": "મોટા અવાજની ઇવેન્ટ્સ વખતે બેકગ્રાઉન્ડ ધીમું કરો",
+"m_extras": "વધારાના ફીચર્સ",
+"x_checking": "ચેક થઈ રહ્યું છે…",
+"x_download": "ઓપસ એન્કોડર ડાઉનલોડ કરો",
+"x_clear": "કેશ કરેલા વધારાના ફીચર્સ ક્લિયર કરો",
+"m_addsound": "સાઉન્ડ ફાઇલો ઉમેરો…",
+"m_install": "એપ ઇન્સ્ટોલ કરો",
+"ui_cancel": "રદ કરો",
+"aria_output": "ઓડિયો આઉટપુટ",
+"aria_beat": "બાયનોરલ બીટ",
+"aria_pattern": "શ્વાસ લેવાની પેટર્ન",
+"aria_close": "બંધ કરો",
+"aria_export": "એક્સપોર્ટ કરો",
+"aria_fade": "ફેડ લંબાઈ",
+"aria_master": "માસ્ટર વોલ્યુમ",
+"aria_more": "વધુ વિકલ્પો",
+"aria_play": "પ્લે",
+"aria_cats": "પ્રીસેટ કેટેગરીઝ",
+"aria_space": "રિવર્બ સ્પેસ",
+"aria_search": "મિક્સ શોધો",
+"ph_search": "મિક્સ શોધો…",
+"aria_sleep": "સ્લીપ ટાઈમર",
+"aria_bits": "WAV બીટ ડેપ્થ",
+"tip_breathe": "ટિપ: આને હાર્ટબીટ લેયર અથવા ડીપ કામ મિક્સ સાથે જોડો.",
+"now_silence": "મૌન",
+"now_hint": "પ્રીસેટ ટેપ કરો અથવા સ્લાઇડર ઊંચું કરો",
+"ui_ok": "OK",
+"ui_save": "સેવ કરો",
+"dlg_confirm": "કૃપા કરીને પુષ્ટિ કરો",
+"aria_mute": "મ્યૂટ",
+"aria_solo": "સોલો",
+"aria_remove": "દૂર કરો",
+"aria_reorder": "ફરી ગોઠવો",
+"aria_volume": "અવાજ",
+"exp_note": "10 મિનિટ સુધી WAV ≈ {s} પ્રતિ 5 મિનિટ {b}-bit પર. Opus ઘણું નાનું છે અને {o}",
+"exp_fast": "ઝડપથી એન્કોડ થાય છે (એન્કોડર કેશ કરેલ છે).",
+"exp_slow": "એકવાર ~230 KB એન્કોડર ડાઉનલોડ કરવાની જરૂર છે.",
+"help_intro": "મૂડ માટે પ્રીસેટ ટેપ કરો, અથવા રેન્ડમ માટે Surprise.",
+"help_play": "Space / K  — વગાડો અથવા થોભાવો",
+"help_mute": "M  — બધું મ્યૂટ કરો",
+"help_rand": "R  — મને સરપ્રાઈઝ આપો",
+"help_silence": "S  — બધા લેયર્સ મ્યૂટ કરો",
+"help_breathe": "B  — બ્રીધિંગ ગાઈડ",
+"help_mixer": "V  — મિક્સર વ્યુ",
+"help_presets": "1–9  — પ્રીસેટ 1–9 લાગુ કરો",
+"help_undo": "Ctrl/⌘+Z  — અનડૂ",
+"help_this": "?  — આ મદદ",
+"help_esc": "Esc  — પેનલ્સ બંધ કરો",
+"help_dbl": "સ્લાઇડરને શૂન્ય પર રિસેટ કરવા માટે તેના પર ડબલ-ટેપ કરો.",
+"help_more": "વધુ ▸ Space રિવેર્બ ઉમેરે છે; Add sound files તમારી પોતાની ઓડિયોને લેયર્સમાં ફેરવે છે; Extras ઝડપી Opus એન્કોડર ડાઉનલોડ કરે છે.",
+"help_offline": "બધું ઑફલાઇન ચાલે છે.",
+"msg_silenced": "બધી લેયર્સ શાંત",
+"msg_installed": "એપ ઇન્સ્ટોલ થઈ",
+"msg_clrcleared": "કેશ કરેલ એન્કોડર સાફ કર્યું",
+"msg_cantread": "{v} વાંચી શક્યા નહીં",
+"msg_badfile": "તે ફાઇલ વાંચી શક્યા નહીં.",
+"msg_savefail": "ઇમ્પોર્ટ કરેલ મિક્સ સેવ કરી શક્યા નહીં.",
+"msg_outfail": "આઉટપુટ બદલી શક્યા નહીં",
+"msg_dlfail": "ડાઉનલોડ નિષ્ફળ — તમારું કનેક્શન તપાસો",
+"msg_allexport": "અત્યારે બધું શાંત છે — એક્સપોર્ટ કરતા પહેલા ઓછામાં ઓછી એક લેયર (અને માસ્ટર વોલ્યુમ) વધારો.",
+"msg_expfail": "એક્સપોર્ટ નિષ્ફળ. કૃપા કરીને ફરી પ્રયાસ કરો.",
+"msg_exported": "એક્સપોર્ટ કર્યું {m} મિનિટ · {e}",
+"msg_installing": "ઇન્સ્ટોલ થઈ રહ્યું છે…",
+"msg_micexp": "લાઇવ માઇક્રોફોન ઇનપુટ એક્સપોર્ટમાં સામેલ નથી",
+"msg_micna": "માઇક્રોફોન ઉપલબ્ધ નથી",
+"msg_micoff": "માઇક્રોફોન બંધ",
+"msg_micon": "માઇક્રોફોન ચાલુ — લાઇવ ઇનપુટ એક લેયર તરીકે ઉમેર્યું",
+"msg_micdenied": "માઇક્રોફોનની પરવાનગી નકારી",
+"msg_mixdel": "મિક્સ ડિલીટ થયું — રિસ્ટોર કરવા માટે અનડૂ કરો",
+"msg_mixlink": "લિંક પરથી મિક્સ લોડ થયું",
+"msg_mixsaved": "મિક્સ સેવ થયું",
+"msg_mixexp": "મિક્સ એક્સપોર્ટ થયા",
+"msg_noundo": "અનડૂ કરવા માટે કંઈ નથી",
+"msg_opusready": "ઓપસ એન્કોડર તૈયાર — હવે એક્સપોર્ટ ઝડપથી એન્કોડ થાય છે",
+"msg_ordersaved": "ઓર્ડર સેવ થયો",
+"msg_outchanged": "આઉટપુટ બદલાયું",
+"msg_pomostopped": "પોમોડોરો બંધ",
+"msg_pomofocus": "પોમોડોરો: 25 મિનિટ ફોકસ",
+"msg_pomobreak": "પોમોડોરો: 5 મિનિટ બ્રેક",
+"msg_ramp": "{v} મિનિટમાં રેમ્પિંગ અપ",
+"msg_recal": "લેવલ ફરીથી માપી રહ્યા છીએ…",
+"msg_slow": "આ ડિવાઇસ પર રેન્ડરિંગ ધીમું લાગે છે — આ {m}-મિનિટના એક્સપોર્ટમાં લગભગ {e} મિનિટ લાગી શકે છે. ચાલુ રાખવું?",
+"msg_absave": "પહેલા સ્નેપશોટ A સેવ કરો",
+"msg_linkcopied": "શેર લિંક કોપી થઈ",
+"msg_snapA": "સ્નેપશોટ A સેવ થયું",
+"msg_soundremoved": "સાઉન્ડ દૂર કર્યો",
+"msg_surprise": "સરપ્રાઈઝ મિક્સ",
+"msg_notmix": "તે ફાઇલને મિક્સ ફાઇલ તરીકે વાંચી શકાઈ નથી.",
+"msg_undone": "અનડૂ કર્યું",
+"msg_a2hs": "તમારા બ્રાઉઝર મેનૂનો ઉપયોગ કરો ▸ હોમ સ્ક્રીન પર ઉમેરો",
+"msg_mixlimit": "તમે 20-મિક્સની મર્યાદા સુધી પહોંચી ગયા છો. પહેલા એક ડિલીટ કરો.",
+"msg_binaural": "બાયનોરલ બીટ {v} Hz",
+"msg_langset": "ભાષા બદલાઈ",
+"m_packexp": "સાઉન્ડ પેક એક્સપોર્ટ કરો",
+"m_packimp": "સાઉન્ડ પેક ઇમ્પોર્ટ કરો…",
+"msg_nosounds": "પેક કરવા માટે હજી કોઈ કસ્ટમ સાઉન્ડ નથી.",
+"msg_packexp": "સાઉન્ડ પેક એક્સપોર્ટ થયો",
+"msg_packimp": "સાઉન્ડ પેક ઇમ્પોર્ટ થયો — {n} સાઉન્ડ ઉમેર્યા",
+"msg_notpack": "આ સાઉન્ડ પેક ફાઇલ નથી.",
+"layer_rain": "વરસાદ",
+"layer_thunder": "વીજળીનો કડાકો",
+"layer_cafe": "કેફે",
+"layer_train": "ટ્રેન",
+"layer_wind": "પવન",
+"layer_fire": "આગ",
+"layer_birds": "પક્ષીઓ",
+"layer_ocean": "સમુદ્ર",
+"layer_white": "વ્હાઇટ નોઇઝ",
+"layer_pink": "પિંક નોઇઝ",
+"layer_brown": "બ્રાઉન નોઇઝ",
+"layer_forest": "જંગલ",
+"layer_typing": "ટાઈપિંગ",
+"layer_clock": "ઘડિયાળ",
+"layer_catpurr": "બિલાડીનો ઘુરકવાનો અવાજ",
+"layer_cosmic": "કોસ્મિક ડ્રોન",
+"layer_walking": "ચાલવું",
+"layer_traffic": "ટ્રાફિક",
+"layer_crickets": "ક્રિકેટ્સ",
+"layer_stream": "ઝરણાનો અવાજ",
+"layer_chimes": "વિન્ડ ચાઇમ્સ",
+"layer_binaural": "બાયનોરલ બીટ",
+"layer_heartbeat": "હૃદયના ધબકારા",
+"layer_fan": "પંખો",
+"layer_vinyl": "વિનાઇલ ક્રેકલ",
+"preset_cozyrain": "આરામદાયક વરસાદ",
+"preset_storm": "વાવાઝોડું",
+"preset_cafe": "વ્યસ્ત કાફે",
+"preset_oceancalm": "શાંત મહાસાગર",
+"preset_forestnight": "જંગલની રાત",
+"preset_focus": "ઊંડું ધ્યાન",
+"preset_commute": "શહેરનો પ્રવાસ",
+"preset_catcafe": "કેટ કાફે",
+"preset_countrywalk": "દેશમાં લટાર",
+"preset_nightdrive": "મોડી રાતની ડ્રાઇવ",
+"preset_cozystudy": "આરામદાયક અભ્યાસ",
+"preset_meditation": "ધ્યાન",
+"preset_deepcalm": "ઊંડી શાંતિ",
+"preset_riverside": "નદી કિનારો",
+"preset_rainoncar": "કાર પર વરસાદ",
+"preset_library": "પુસ્તકાલય",
+"preset_deepsleep": "ઊંડી ઊંઘ",
+"preset_airport": "એરપોર્ટ લાઉન્જ",
+"preset_summernight": "ઉનાળાની રાત",
+"preset_rainforest": "વરસાદી જંગલ",
+"preset_campfire": "કેમ્પફાયર",
+"preset_laundromat": "લોન્ડ્રોમેટ",
+"preset_seaside": "દરિયાકિનારો",
+"preset_studyhall": "સ્ટડી હોલ",
+"preset_nightbus": "નાઇટ બસ",
+"preset_zen": "ઝેન ગાર્ડન",
+"preset_focusbeats": "ફોકસ બીટ્સ",
+"preset_sleepbeats": "સ્લીપ બીટ્સ",
+"preset_monsoon": "ચોમાસાની સાંજ",
+"preset_rainwindow": "બારી પર વરસાદ",
+"preset_dawn": "પરોઢનું સંગીત",
+"preset_winter": "શિયાળાની રાત",
+"preset_summer": "ઉનાળાની બપોર",
+"preset_temple": "મંદિરની ઘંટડીઓ",
+"preset_spa": "સ્પા",
+"preset_exam": "પરીક્ષા હોલ"
+}
+};
+
+var LANGS=[{id:"en",n:"English"},{id:"hi",n:"\u0939\u093f\u0928\u094d\u0926\u0940"},{id:"gu",n:"\u0a97\u0ac1\u0a9c\u0ab0\u0abe\u0aa4\u0ac0"}];
+var LANG=(function(){try{var v=localStorage.getItem("amb_lang");return (v==="hi"||v==="gu")?v:"en";}catch(e){return "en";}})();
+var EN2KEY=(function(){var m={},k;for(k in STR.en){if(m[STR.en[k]]==null)m[STR.en[k]]=k;}return m;})();
+
+function _t(k,vars){
+var d=STR[LANG]||STR.en;
+var v=(d&&d[k]!=null)?d[k]:(STR.en[k]!=null?STR.en[k]:k);
+if(vars){for(var p in vars)v=v.split("{"+p+"}").join(vars[p]);}
+return v;
+}
+/* Translate the static interface by walking its text nodes and attribute
+   values once, remembering which key each one came from so switching
+   language is a re-render rather than a re-parse. */
+var I18N_SKIP="#grid,#mixer,#profiles,#nowbar,#toast,#prog,#fab,#dlg,#breathe,#expNote,#extraStatus";
+function applyLang(){
+try{document.documentElement.setAttribute("lang",LANG);}catch(e){}
+var map=STR[LANG]||STR.en;
+var walker=document.createTreeWalker(document.body,NodeFilter.SHOW_TEXT,null),nd,list=[];
+while((nd=walker.nextNode())){
+var el=nd.parentNode;
+if(!el||el.nodeType!==1)continue;
+var tag=el.tagName;
+if(tag==="SCRIPT"||tag==="STYLE")continue;
+if(el.closest&&el.closest(I18N_SKIP))continue;
+var key=nd.nodeValue.trim();
+if(!key)continue;
+if(!el._ik){var kk=EN2KEY[key];if(!kk)continue;el._ik=kk;el._ir=nd.nodeValue;}
+list.push([nd,el]);
+}
+list.forEach(function(pr){
+var el=pr[1],v=map[el._ik]!=null?map[el._ik]:STR.en[el._ik];
+pr[0].nodeValue=el._ir.replace(el._ir.trim(),v);
+});
+[].forEach.call(document.querySelectorAll("[aria-label],[title],[placeholder]"),function(el){
+[["aria-label","_ak"],["title","_tk"],["placeholder","_pk"]].forEach(function(pr){
+var attr=pr[0],slot=pr[1],cur=el.getAttribute(attr);
+if(!cur)return;
+if(!el[slot]){var kk=EN2KEY[cur.trim()];if(!kk)return;el[slot]=kk;}
+el.setAttribute(attr,map[el[slot]]!=null?map[el[slot]]:STR.en[el[slot]]);
+});
+});
+D.forEach(function(d){if(d._en==null)d._en=d.n;d.n=map["layer_"+d.id]||d._en;});
+P.forEach(function(p){if(p._en==null)p._en=p.n;p.n=map["preset_"+p.id]||p._en;});
+refreshNames();
+}
+function refreshNames(){
+[].forEach.call(document.querySelectorAll("#grid .card"),function(c){
+var id=c.dataset.id,d=null,i;
+for(i=0;i<D.length;i++)if(D[i].id===id){d=D[i];break;}
+if(!d)return;
+var n=c.querySelector(".cn");if(n)n.textContent=d.n;
+var g=c.querySelector(".grip");if(g)g.setAttribute("aria-label",_t("aria_reorder")+" "+d.n);
+var s=c.querySelector(".sl");if(s)s.setAttribute("aria-label",d.n+" "+_t("aria_volume"));
+var mt=c.querySelector(".mt");if(mt)mt.setAttribute("aria-label",_t("aria_mute")+" "+d.n);
+var so=c.querySelector(".so");if(so)so.setAttribute("aria-label",_t("aria_solo")+" "+d.n);
+var dl=c.querySelector(".del2");if(dl)dl.setAttribute("aria-label",_t("aria_remove")+" "+d.n);
+});
+buildProfiles();buildMixer();updateNowBar();
+}
+function helpBody(){
+return [_t("help_intro"),"",_t("help_play"),_t("help_mute"),_t("help_rand"),_t("help_silence"),
+_t("help_breathe"),_t("help_mixer"),_t("help_presets"),_t("help_undo"),_t("help_this"),_t("help_esc"),"",
+_t("help_dbl"),_t("help_more"),_t("help_offline")].join("\n");
+}
+function setupLang(){
+var sel=document.getElementById("langSel");
+if(!sel)return;
+LANGS.forEach(function(L2){var o=document.createElement("option");o.value=L2.id;o.textContent=L2.n;sel.appendChild(o);});
+sel.value=LANG;
+sel.onchange=function(){
+LANG=sel.value;
+try{localStorage.setItem("amb_lang",LANG);}catch(e){}
+applyLang();
+toast(_t("msg_langset"));
+};
 }
 
 /* ---------- boot ---------- */
@@ -2258,25 +3221,28 @@ await downloadExtras(function(t){setProg(t);});
 opusFactory=null;
 await ensureEncoder();
 setProg("");
-toast("Opus encoder ready — exports now encode fast");
-}catch(e){setProg("");toast("Download failed — check your connection");}
+toast(_t("msg_opusready"));
+}catch(e){setProg("");toast(_t("msg_dlfail"));}
 updateExtrasUI();refreshExportNote();
 });
 wire("clrExtrasBtn",async function(){
 closeMenus();
 try{var ks=await IDB.keys();for(var i=0;i<ks.length;i++){if(String(ks[i]).indexOf("enc:")===0)await IDB.del(ks[i]);}}catch(e){}
 opusFactory=null;encoderReady=false;
-toast("Cached encoder cleared");
+toast(_t("msg_clrcleared"));
 updateExtrasUI();refreshExportNote();
 });
 wire("addSoundBtn",function(){closeMenus();var f=document.getElementById("sndFile");if(f)f.click();});
+wire("packExpBtn",function(){closeMenus();expPack();});
+wire("packImpBtn",function(){closeMenus();impPack();});
+setupLang();
 wire("installBtn",async function(){
 closeMenus();
-if(!deferredInstall){toast("Use your browser menu \u25b8 Add to Home Screen");return;}
+if(!deferredInstall){toast(_t("msg_a2hs"));return;}
 try{
 deferredInstall.prompt();
 var ch=await deferredInstall.userChoice;
-if(ch&&ch.outcome==="accepted")toast("Installing\u2026");
+if(ch&&ch.outcome==="accepted")toast(_t("msg_installing"));
 }catch(e){}
 deferredInstall=null;
 var ib=document.getElementById("installBtn");if(ib)ib.style.display="none";
@@ -2288,7 +3254,7 @@ var ib=document.getElementById("installBtn");if(ib)ib.style.display="block";
 window.addEventListener("appinstalled",function(){
 deferredInstall=null;
 var ib=document.getElementById("installBtn");if(ib)ib.style.display="none";
-toast("App installed");
+toast(_t("msg_installed"));
 });
 if(window.matchMedia&&window.matchMedia("(display-mode: standalone)").matches){
 var ib2=document.getElementById("installBtn");if(ib2)ib2.style.display="none";
@@ -2309,7 +3275,7 @@ var duckT=document.getElementById("duckToggle");
 if(duckT){try{duckT.checked=localStorage.getItem("amb_duck")==="1";}catch(e){}ducking=duckT.checked;
 duckT.onchange=function(){ducking=duckT.checked;try{localStorage.setItem("amb_duck",ducking?"1":"0");}catch(e){}if(duckBus&&a)duckBus.gain.setTargetAtTime(1,a.currentTime,.1);toast(ducking?"Ducking on":"Ducking off");};}
 var sinkSel=document.getElementById("sinkSel");
-if(sinkSel)sinkSel.onchange=async function(){try{await a.setSinkId(sinkSel.value||"");toast("Output changed");}catch(e){toast("Could not switch output");}};
+if(sinkSel)sinkSel.onchange=async function(){try{await a.setSinkId(sinkSel.value||"");toast(_t("msg_outchanged"));}catch(e){toast(_t("msg_outfail"));}};
 var bStart=document.getElementById("bStart"),bStop=document.getElementById("bStop"),bClose=document.getElementById("breatheClose"),bPatSel=document.getElementById("bPattern"),bOv=document.getElementById("breathe");
 if(bStart)bStart.onclick=function(){startBreathe();};
 if(bStop)bStop.onclick=function(){stopBreathe();};
@@ -2334,6 +3300,7 @@ if(spaceSl)spaceSl.oninput=function(e){spaceVal=e.target.value/100;if(revWet&&a)
 var al=document.getElementById("autolevelToggle");
 if(al){al.checked=autolevel;al.onchange=function(){autolevel=al.checked;try{localStorage.setItem("amb_autolevel",autolevel?"1":"0");}catch(e){}toast(autolevel?"Auto-level on":"Auto-level off");if(autolevel)L.forEach(function(l){if(l.built&&!TRIM_CACHE[l.def.id])calibrateOne(l);});};}
 var impF=document.getElementById("impFile");if(impF)impF.onchange=handleImportFile;
+var packF=document.getElementById("packFile");if(packF)packF.onchange=handlePackFile;
 buildAccentRow();
 document.addEventListener("keydown",function(e){
 var t=e.target;
@@ -2367,6 +3334,7 @@ loadFromHash();
 window.addEventListener("hashchange",function(){loadFromHash();});
 updateNowBar();
 updateMediaSession();
+applyLang();
 }
 if(!NOAUDIO)boot();else{buildUI();}
 </script>

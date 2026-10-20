@@ -53,6 +53,14 @@ trackpad.
 That is the Wake Lock, which is deliberate — it stops your phone sleeping while
 a soundscape plays. It is released automatically when you pause.
 
+### Can I use it in Hindi or Gujarati?
+
+Yes. Open **More ⋯ → Language** and pick English, हिन्दी or ગુજરાતી. The interface, the layer names, the presets and the messages all change, and your choice is remembered between visits.
+
+### Can I share my own sounds with someone?
+
+Yes. **More ⋯ → Export sound pack** writes a single file containing every custom sound you have added plus the current mix. Anyone can bring it in with **Import sound pack…**. The pack holds real audio, so the file is as big as the sounds in it.
+
 ### Can I share a mix?
 Yes: **More ⋯ → Copy share link** encodes the mix into the URL. Anyone opening
 that link gets your exact mix. You can also export/import mixes as JSON.

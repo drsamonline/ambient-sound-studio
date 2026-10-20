@@ -21,7 +21,8 @@ Layer rain, thunder, fire, café murmur, ocean, wind chimes and more — then ex
 [![HTML5](https://img.shields.io/badge/HTML5-E34F26?style=flat-square&logo=html5&logoColor=white)](https://developer.mozilla.org/docs/Web/HTML)
 [![Web Audio API](https://img.shields.io/badge/Web%20Audio-API-orange?style=flat-square)](https://developer.mozilla.org/docs/Web/API/Web_Audio_API)
 [![Layers](https://img.shields.io/badge/layers-25-blue?style=flat-square)](#-the-sound-library)
-[![Presets](https://img.shields.io/badge/presets-28-blue?style=flat-square)](#-presets)
+[![Presets](https://img.shields.io/badge/presets-36-blue?style=flat-square)](#-presets)
+[![Languages](https://img.shields.io/badge/languages-English%20%7C%20Hindi%20%7C%20Gujarati-9cf?style=flat-square)](#-languages)
 [![No build required](https://img.shields.io/badge/build-none%20required-success?style=flat-square)](#-development)
 [![Made in Vadodara, India](https://img.shields.io/badge/made%20in-Vadodara%2C%20India-ff9933?style=flat-square)](#credits)
 
@@ -63,7 +64,7 @@ Layer rain, thunder, fire, café murmur, ocean, wind chimes and more — then ex
 - **Card view and mixer view**, drag to reorder layers
 
 **Presets & moods**
-- **28 curated presets** across Sleep, Focus, Relax, Nature and Urban, with a category filter and search
+- **36 curated presets** across Sleep, Focus, Relax, Nature and Urban, with a category filter and search
 - Each preset carries a matching **mood theme** that recolours the whole app
 - **Surprise me** randomiser, save your own mixes, and share a mix as a link
 
@@ -78,6 +79,8 @@ Layer rain, thunder, fire, café murmur, ocean, wind chimes and more — then ex
 - Media Session (lock-screen controls) and screen Wake Lock
 - Audio output picker, accent colour, haptics
 - Full **keyboard control** and screen-reader-friendly markup
+- **Three languages** — English, Hindi and Gujarati, switchable in the More menu
+- **Sound packs** — export your own sounds plus the current mix as a single file, and import someone else's
 
 ---
 
@@ -118,15 +121,15 @@ Plus **your own audio files**, which become layers of their own.
 
 ## 🗂 Presets
 
-28 curated mixes across five categories. Each carries a matching mood theme.
+36 curated mixes across five categories. Each carries a matching mood theme.
 
 | Category | Presets |
 |---|---|
-| 🌿 **Nature** | Cozy Rain · Thunderstorm · Forest Night · Country Walk · Riverside · Rain on Car · Summer Night · Rainforest · Campfire |
+| 🌿 **Nature** | Cozy Rain · Thunderstorm · Forest Night · Country Walk · Riverside · Rain on Car · Summer Night · Rainforest · Campfire · Monsoon Evening · Dawn Chorus · Summer Afternoon |
 | 🏙️ **Urban** | Busy Cafe · City Commute · Late Night Drive · Airport Lounge · Night Bus |
-| 🎯 **Focus** | Deep Focus · Cozy Study · Library · Laundromat · Study Hall · Focus Beats |
-| 🛋️ **Relax** | Ocean Calm · Cat Cafe · Meditation · Seaside · Zen Garden |
-| 🌙 **Sleep** | Deep Calm · Deep Sleep · Sleep Beats |
+| 🎯 **Focus** | Deep Focus · Cozy Study · Library · Laundromat · Study Hall · Focus Beats · Exam Hall |
+| 🛋️ **Relax** | Ocean Calm · Cat Cafe · Meditation · Seaside · Zen Garden · Rain on Window · Temple Bells · Spa |
+| 🌙 **Sleep** | Deep Calm · Deep Sleep · Sleep Beats · Winter Night |
 
 Filter by category or search by name in the app. **Surprise me** picks a random one.
 
@@ -179,6 +182,7 @@ Double-tap any fader to reset it to zero. The bar under the title always shows t
 | <kbd>Ctrl</kbd>/<kbd>⌘</kbd>+<kbd>Z</kbd> | Undo |
 | <kbd>?</kbd> | Help |
 | <kbd>Esc</kbd> | Close panels |
+| <kbd>←</kbd> <kbd>→</kbd> <kbd>↑</kbd> <kbd>↓</kbd> | Move a layer, when its drag handle has focus |
 
 ---
 
@@ -287,13 +291,15 @@ See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for a guided tour of the code a
 
 ## 🗺 Roadmap
 
-- [x] 25 layers, 28 presets, reverb, binaural beats, ducking
+- [x] 25 layers, 36 presets, reverb, binaural beats, ducking
 - [x] WAV + Opus export with multi-tile crossfading
 - [x] Fully offline, installable PWA
 - [x] Your own audio files as layers
-- [ ] Optional community sound packs
-- [ ] More presets and seasonal mixes
-- [ ] Localisation
+- [x] **Sound packs** — export your custom sounds + mix as one shareable file
+- [x] **Seasonal and regional presets** — Monsoon Evening, Dawn Chorus, Winter Night, Temple Bells…
+- [x] **Localisation** — English, Hindi and Gujarati
+
+More ideas are welcome — see [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ---
 
