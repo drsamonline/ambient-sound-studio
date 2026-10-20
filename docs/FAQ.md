@@ -53,6 +53,10 @@ trackpad.
 That is the Wake Lock, which is deliberate — it stops your phone sleeping while
 a soundscape plays. It is released automatically when you pause.
 
+### How do I find a preset?
+
+Open the **Preset** dropdown next to the title. All 36 are listed, grouped by category (Sleep, Focus, Relax, Nature, Urban), plus a **My mixes** group for anything you save. **Surprise me** picks a random one.
+
 ### Can I use it in Hindi or Gujarati?
 
 Yes. Open **More ⋯ → Language** and pick English, हिन्दी or ગુજરાતી. The interface, the layer names, the presets and the messages all change, and your choice is remembered between visits.

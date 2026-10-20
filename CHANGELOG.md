@@ -3,6 +3,23 @@
 All notable changes to Ambient Sound Studio are documented here.
 This project follows [Semantic Versioning](https://semver.org/).
 
+## [1.6.1] - 2026-10-20
+
+### Fixed
+- **The preset list was unreachable.** Presets were laid out as a single
+  horizontally-scrolling row with the scrollbar hidden, so most of the 36 sat
+  off-screen with nothing to indicate they existed, and the row spilled past
+  the edge of the screen.
+
+### Changed
+- **Presets are now a dropdown, grouped by category** (Sleep, Focus, Relax,
+  Nature, Urban, plus **My mixes**). Every preset is always reachable, nothing
+  overflows, and the native list works with a keyboard. **Surprise me** and
+  **Save mix** sit beside it; a **Delete mix** button appears when one of your
+  own mixes is selected.
+- The category filter chips and the search box are gone — the grouped dropdown
+  replaces both.
+
 ## [1.6.0] - 2026-10-20
 
 ### Added
@@ -126,6 +143,7 @@ This project follows [Semantic Versioning](https://semver.org/).
 - Initial release: 24 synthesised layers, 14 presets, WAV/Opus export,
   mood themes, sleep timer, offline PWA shell.
 
+[1.6.1]: https://github.com/drsamonline/ambient-sound-studio/compare/v1.6.0...v1.6.1
 [1.6.0]: https://github.com/drsamonline/ambient-sound-studio/compare/v1.5.0...v1.6.0
 [1.5.0]: https://github.com/drsamonline/ambient-sound-studio/compare/v1.4.0...v1.5.0
 [1.4.0]: https://github.com/drsamonline/ambient-sound-studio/compare/v1.3.0...v1.4.0

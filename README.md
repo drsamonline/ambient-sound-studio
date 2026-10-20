@@ -17,7 +17,7 @@ Layer rain, thunder, fire, café murmur, ocean, wind chimes and more — then ex
 [![Single file](https://img.shields.io/badge/single%20file-1-blueviolet?style=for-the-badge)](#-zero-dependencies)
 [![PWA](https://img.shields.io/badge/PWA-installable-5A0FC8?style=for-the-badge)](#-offline--pwa)
 [![Tracking](https://img.shields.io/badge/tracking-none-success?style=for-the-badge)](#-privacy)
-[![Size](https://img.shields.io/badge/size-96%20KB-informational?style=for-the-badge)](#-zero-dependencies)
+[![Size](https://img.shields.io/badge/size-137%20KB-informational?style=for-the-badge)](#-zero-dependencies)
 
 [![HTML5](https://img.shields.io/badge/HTML5-E34F26?style=flat-square&logo=html5&logoColor=white)](https://developer.mozilla.org/docs/Web/HTML)
 [![Web Audio API](https://img.shields.io/badge/Web%20Audio-API-orange?style=flat-square)](https://developer.mozilla.org/docs/Web/API/Web_Audio_API)
@@ -69,7 +69,7 @@ No install, no sign-up. It runs entirely in your browser and works offline.
 - **Card view and mixer view**, drag to reorder layers
 
 **Presets & moods**
-- **36 curated presets** across Sleep, Focus, Relax, Nature and Urban, with a category filter and search
+- **36 curated presets** across Sleep, Focus, Relax, Nature and Urban, in a dropdown grouped by category
 - Each preset carries a matching **mood theme** that recolours the whole app
 - **Surprise me** randomiser, save your own mixes, and share a mix as a link
 
@@ -153,7 +153,8 @@ Plus **your own audio files**, which become layers of their own.
 | 🛋️ **Relax** | Ocean Calm · Cat Cafe · Meditation · Seaside · Zen Garden · Rain on Window · Temple Bells · Spa |
 | 🌙 **Sleep** | Deep Calm · Deep Sleep · Sleep Beats · Winter Night |
 
-Filter by category or search by name in the app. **Surprise me** picks a random one.
+Pick one from the dropdown — they are grouped by category, so all 36 are always reachable.
+**Surprise me** picks a random one, and **Save mix** keeps the one you have built.
 
 ---
 
@@ -260,7 +261,8 @@ This is also the honest answer to "can it ship with recorded samples": every **b
 
 - **One HTML file.** HTML, CSS and JavaScript in a single document.
 - **No framework, no build step required, no CDN** for the app itself.
-- The minified build is **96 KB**; the readable source is 116 KB.
+- The minified build is **137 KB**; the readable source is 164 KB (the Hindi and
+  Gujarati strings are multi-byte, so the byte count is higher than the character count).
 - Third-party code is limited to the optional Opus encoder, downloaded at your request and cached locally — see [docs/THIRD-PARTY.md](docs/THIRD-PARTY.md).
 
 ---

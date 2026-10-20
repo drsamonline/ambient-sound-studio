@@ -28,17 +28,19 @@ input{font:inherit}
 header{text-align:center;margin-bottom:22px}
 header h1{font-size:26px;font-weight:700;letter-spacing:.04em;margin:0 0 4px;background:linear-gradient(135deg,#f3e3bd,var(--ac) 60%,#8a6a2c);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
 header p{margin:0;font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--tx2);font-variant:small-caps}
-#profiles{display:flex;gap:8px;overflow-x:auto;padding:4px 2px 14px;scrollbar-width:none}
-#profiles::-webkit-scrollbar{display:none}
-.chipwrap{position:relative;display:inline-flex;flex:none}
-.chip{flex:none;padding:9px 16px;border-radius:999px;background:var(--card);border:1px solid var(--cardb);color:var(--tx2);font-size:13px;white-space:nowrap;transition:.2s;position:relative;backdrop-filter:blur(10px)}
-.chip:hover{color:var(--tx);border-color:rgba(215,169,74,.4)}
-.chip.sel{color:#1a1408;background:var(--ac);border-color:var(--ac);font-weight:600}
-.chip.custom{padding-right:30px}
+#presetRow{display:flex;gap:8px;align-items:center;flex-wrap:wrap;padding:2px 2px 12px}
+#presetRow .plab{flex:none;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--tx2)}
+#presetSel{flex:1 1 200px;min-width:140px;max-width:360px;background:var(--card);border:1px solid var(--cardb);border-radius:10px;padding:9px 11px;color:var(--tx);font:inherit;font-size:13.5px;cursor:pointer;backdrop-filter:blur(10px)}
+#presetSel:hover{border-color:rgba(215,169,74,.4)}
+#presetSel:focus-visible{outline:2px solid var(--ac);outline-offset:2px}
+.pRowBtn{flex:none;padding:9px 13px;border-radius:10px;background:var(--card);border:1px solid var(--cardb);color:var(--tx2);font:inherit;font-size:12.5px;white-space:nowrap;cursor:pointer;transition:.2s}
+.pRowBtn:hover{color:var(--tx);border-color:rgba(215,169,74,.4)}
+.pRowBtn:focus-visible{outline:2px solid var(--ac);outline-offset:2px}
+#saveP{border-style:dashed;font-weight:600}
+#delP{color:#ff9e9e;border-color:rgba(220,80,80,.35)}
 .del{position:absolute;right:6px;top:50%;transform:translateY(-50%);width:16px;height:16px;opacity:.6;z-index:1;border-radius:4px}
 .del:hover,.del:focus-visible{opacity:1}
 .del svg{width:100%;height:100%}
-#saveP{display:flex;align-items:center;gap:6px;font-weight:600;border-style:dashed}
 #grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:8px}
 #credit{text-align:center;margin-top:26px;font-size:11px;letter-spacing:.04em;color:var(--tx2);opacity:.65}
 .authorlink{color:var(--tx2);text-decoration:underline;text-underline-offset:2px;font:inherit;letter-spacing:inherit;opacity:1}
@@ -175,10 +177,6 @@ body.th-cat{background:radial-gradient(120% 100% at 50% -10%,#3a2a22 0%,#1c130e 
 @media(max-width:420px){.bt{width:26px;height:26px}#dock{gap:10px}.mvol{max-width:150px;padding:8px 12px}}
 
 /* ---------- v4 additions ---------- */
-#pfilter{display:flex;gap:6px;align-items:center;flex-wrap:wrap;padding:0 2px 10px}
-.fchip{padding:6px 12px;border-radius:999px;background:var(--card);border:1px solid var(--cardb);color:var(--tx2);font-size:11.5px;white-space:nowrap}
-.fchip.sel{color:#1a1408;background:var(--ac);border-color:var(--ac);font-weight:600}
-#psearchInput{flex:1;min-width:110px;background:var(--card);border:1px solid var(--cardb);border-radius:999px;padding:7px 12px;color:var(--tx);font:inherit;font-size:12px}
 .empty{font-size:12px;color:var(--tx2);padding:6px 4px}
 #mixer{display:none;flex-direction:column;gap:6px}
 body.mixer-mode #mixer{display:flex}
@@ -224,8 +222,13 @@ body.mixer-mode #grid{display:none}
 <p>Sound Studio</p>
 <div id="nowbar" aria-live="polite"></div>
 </header>
-<div id="pfilter" role="tablist" aria-label="Preset categories"><button type="button" class="fchip sel" data-cat="all" role="tab" aria-selected="true">All</button><button type="button" class="fchip" data-cat="Sleep" role="tab" aria-selected="false">Sleep</button><button type="button" class="fchip" data-cat="Focus" role="tab" aria-selected="false">Focus</button><button type="button" class="fchip" data-cat="Relax" role="tab" aria-selected="false">Relax</button><button type="button" class="fchip" data-cat="Nature" role="tab" aria-selected="false">Nature</button><button type="button" class="fchip" data-cat="Urban" role="tab" aria-selected="false">Urban</button><input type="search" id="psearchInput" placeholder="Search mixes&hellip;" aria-label="Search mixes"></div>
-<div id="profiles"></div>
+<div id="presetRow">
+<label class="plab" for="presetSel">Preset</label>
+<select id="presetSel" aria-label="Preset"></select>
+<button type="button" id="randP" class="pRowBtn">Surprise me</button>
+<button type="button" id="saveP" class="pRowBtn">Save mix</button>
+<button type="button" id="delP" class="pRowBtn" hidden>Delete mix</button>
+</div>
 <main id="grid"></main>
 <div id="mixer" aria-label="Mixer view"></div>
 <footer id="credit">Ambient Sound Studio · Crafted by <button type="button" id="authorBtn" class="authorlink">Dr. Sohil Momin</button></footer>
@@ -333,7 +336,7 @@ if(NOAUDIO){document.getElementById("fatal").style.display="flex";}
 
 var AUTHOR="Dr. Sohil Momin";
 var APP_NAME="Ambient Sound Studio";
-var APP_VER="1.6";
+var APP_VER="1.6.1";
 var lastMixName="Custom mix";
 var currentTheme="default";
 
@@ -1124,67 +1127,68 @@ catch(e){alert("Couldn't save — your browser's storage may be full or unavaila
 }
 var lastPid=null;
 function buildProfiles(){
-var wrap=document.getElementById("profiles");
-function chip(pid,name,custom){
-var sp=esc(pid),sn=esc(name);
-return '<span class="chipwrap"><button type="button" class="chip'+(custom?" custom":"")+'" data-pid="'+sp+'" aria-pressed="false">'+sn+'</button>'+
-(custom?'<button type="button" class="del" data-del="'+sp+'" aria-label="Delete '+sn+'"></button>':"")+
-"</span>";
-}
+var sel=document.getElementById("presetSel");
+if(!sel)return;
+var cur=sel.value||lastPid||"";
+var html="";
+["Sleep","Focus","Relax","Nature","Urban"].forEach(function(cat){
+var items=P.filter(function(pp){return pp.cat===cat;});
+if(!items.length)return;
+html+='<optgroup label="'+esc(_t("cat_"+cat))+'">';
+items.forEach(function(pp){html+='<option value="'+esc(pp.id)+'">'+esc(pp.n)+'</option>';});
+html+='</optgroup>';
+});
 var custom=loadCustom();
-var q=pQuery.toLowerCase();
-var list=P.filter(function(pp){
-if(pCat!=="all"&&pp.cat!==pCat)return false;
-if(q&&pp.n.toLowerCase().indexOf(q)<0)return false;
-return true;
-});
-var html=list.map(function(pp){return chip(pp.id,pp.n,false);}).join("");
-if(!list.length)html='<span class="empty">No built-in mixes here</span>';
-html+=custom.filter(function(cItem){return !q||cItem.name.toLowerCase().indexOf(q)>=0;}).map(function(cItem){return chip("c:"+cItem.name,cItem.name,true);}).join("");
-html+='<button type="button" id="saveP" class="chip">+ Save mix</button>';
-html+='<button type="button" id="randP" class="chip">Surprise me</button>';
-wrap.innerHTML=html;
-[].forEach.call(wrap.querySelectorAll(".del"),function(d){d.innerHTML=ic("x");});
-[].forEach.call(wrap.querySelectorAll(".chip[data-pid]"),function(b){
-b.onclick=function(){applyProfileId(b.dataset.pid);};
-});
-[].forEach.call(wrap.querySelectorAll(".del"),function(b){
-b.onclick=async function(){
-var nm=b.dataset.del.slice(2);
-if(await uiConfirm('Delete the mix "'+nm+'"?')){
-pushUndo();
-var list=loadCustom().filter(function(c){return c.name!==nm;});
-if(saveCustom(list)){buildProfiles();toast(_t("msg_mixdel"));}
+if(custom.length){
+html+='<optgroup label="'+esc(_t("mymixes"))+'">';
+custom.forEach(function(c){html+='<option value="'+esc("c:"+c.name)+'">'+esc(c.name)+'</option>';});
+html+='</optgroup>';
 }
-};
-});
-var sp=document.getElementById("saveP");
-if(sp)sp.onclick=async function(){
+sel.innerHTML=html;
+if(cur){try{sel.value=cur;}catch(e){}}
+if(sel.selectedIndex<0&&sel.options.length)sel.selectedIndex=0;
+syncPresetRow();
+}
+function syncPresetRow(){
+var sel=document.getElementById("presetSel"),del=document.getElementById("delP");
+if(!sel||!del)return;
+del.hidden=!(sel.value&&sel.value.indexOf("c:")===0);
+}
+async function saveMixDialog(){
 if(NOAUDIO)return;
 ensureAudio();
 var list=loadCustom();
-var name=await uiPrompt("Save mix","Name this mix:",lastMixName==="Custom mix"?"My mix":lastMixName);
+var name=await uiPrompt(_t("m_savemix"),_t("msg_namesave"),lastMixName==="Custom mix"?_t("m_defaultmix"):lastMixName);
 if(name==null)return;
 name=String(name).trim().slice(0,30);
 if(!name)return;
 var vols={};L.forEach(function(l){vols[l.def.id]=+l.val.toFixed(3);});
 var existing=list.filter(function(c){return c.name===name;})[0];
 if(existing){
-if(!await uiConfirm('A mix called "'+name+'" already exists. Overwrite it?'))return;
+if(!await uiConfirm(_t("msg_overwrite",{n:name})))return;
 existing.vols=vols;existing.theme=currentTheme;
 }else{
 if(list.length>=20){await uiAlert(_t("msg_mixlimit"));return;}
 list.push({name:name,vols:vols,theme:currentTheme});
 }
-if(saveCustom(list)){buildProfiles();toast(_t("msg_mixsaved"));}
-};
-var rp=document.getElementById("randP");
-if(rp)rp.onclick=randomize;
-if(lastPid){
-var match=wrap.querySelector('.chip[data-pid="'+CSS.escape(lastPid)+'"]');
-if(match)match.classList.add("sel");
+if(saveCustom(list)){
+buildProfiles();
+var psNew=document.getElementById("presetSel");
+if(psNew){try{psNew.value="c:"+name;}catch(e){}}
+lastPid="c:"+name;syncPresetRow();
+toast(_t("msg_mixsaved"));
 }
 }
+async function deleteSelectedMix(){
+var sel=document.getElementById("presetSel");
+if(!sel||sel.value.indexOf("c:")!==0)return;
+var nm=sel.value.slice(2);
+if(!await uiConfirm(_t("msg_delmix",{n:nm})))return;
+pushUndo();
+var list=loadCustom().filter(function(c){return c.name!==nm;});
+if(saveCustom(list)){buildProfiles();toast(_t("msg_mixdel"));}
+}
+
 var tweenGen=0;
 function tweenTo(vols){
 var myGen=++tweenGen;
@@ -1242,11 +1246,9 @@ lastPid=pid;
 tweenTo(vols);
 switchTheme(theme);
 updateMediaSession();haptic(10);
-[].forEach.call(document.querySelectorAll(".chip[data-pid]"),function(c){
-var on=c.dataset.pid===pid;
-c.classList.toggle("sel",on);
-c.setAttribute("aria-pressed",on?"true":"false");
-});
+var ps=document.getElementById("presetSel");
+if(ps){try{ps.value=pid;}catch(e){}}
+syncPresetRow();
 }
 
 var RANDOM_MIXES=[
@@ -1283,9 +1285,8 @@ lastPid=null;
 tweenTo(vols);
 switchTheme(m.th);
 haptic(12);toast(_t("msg_surprise"));
-[].forEach.call(document.querySelectorAll(".chip[data-pid]"),function(c){
-c.classList.remove("sel");c.setAttribute("aria-pressed","false");
-});
+var pss=document.getElementById("presetSel");if(pss)pss.selectedIndex=-1;
+syncPresetRow();
 }
 
 /* ---------- sleep timer ---------- */
@@ -1834,7 +1835,8 @@ function stopAll(silent){
 pushUndo();
 L.forEach(function(l){l.val=0;l.muted=false;if(l.built)updateGain(l);syncCard(l);});
 solo=null;lastMixName="Silence";lastPid=null;
-[].forEach.call(document.querySelectorAll(".chip[data-pid]"),function(c){c.classList.remove("sel");c.setAttribute("aria-pressed","false");});
+var pss2=document.getElementById("presetSel");if(pss2)pss2.selectedIndex=-1;
+syncPresetRow();
 updateNowBar();saveSession();
 if(!silent){haptic(8);toast(_t("msg_silenced"));}
 }
@@ -2035,7 +2037,6 @@ rd.readAsText(file);
 }
 
 /* ---------- v4 helpers ---------- */
-var pCat="all",pQuery="";
 var abA=null,abB=null,abIsA=false,undoSlot=null,micStream=null,micLayer=null,pomo=null;
 function curVols(){var o={};L.forEach(function(l){if(l.val>0.001)o[l.def.id]=+l.val.toFixed(3);});return o;}
 function snapshotMix(){return {v:curVols(),t:currentTheme,n:lastMixName};}
@@ -2556,6 +2557,15 @@ var STR={
 "msg_mixlimit": "You have reached the 20-mix limit. Delete one first.",
 "msg_binaural": "Binaural beat {v} Hz",
 "msg_langset": "Language changed",
+"presets_label": "Preset",
+"m_surprise": "Surprise me",
+"m_savemix": "Save mix",
+"m_delmix": "Delete mix",
+"mymixes": "My mixes",
+"msg_namesave": "Name this mix:",
+"msg_overwrite": "A mix called \"{n}\" already exists. Overwrite it?",
+"msg_delmix": "Delete the mix \"{n}\"?",
+"m_defaultmix": "My mix",
 "m_packexp": "Export sound pack",
 "m_packimp": "Import sound pack…",
 "msg_nosounds": "No custom sounds to pack yet.",
@@ -2774,6 +2784,15 @@ var STR={
 "msg_mixlimit": "आप 20-मिक्स की लिमिट तक पहुँच गए हैं। पहले एक डिलीट करें।",
 "msg_binaural": "बाइनोरल बीट {v} Hz",
 "msg_langset": "भाषा बदल दी गई",
+"presets_label": "प्रीसेट",
+"m_surprise": "सरप्राइज़ करें",
+"m_savemix": "मिक्स सेव करें",
+"m_delmix": "मिक्स डिलीट करें",
+"mymixes": "मेरे मिक्स",
+"msg_namesave": "इस मिक्स का नाम:",
+"msg_overwrite": "\"{n}\" नाम का मिक्स पहले से है। ओवरराइट करें?",
+"msg_delmix": "\"{n}\" मिक्स डिलीट करें?",
+"m_defaultmix": "मेरा मिक्स",
 "m_packexp": "साउंड पैक एक्सपोर्ट करें",
 "m_packimp": "साउंड पैक इम्पोर्ट करें…",
 "msg_nosounds": "पैक करने के लिए अभी कोई कस्टम साउंड नहीं है।",
@@ -2992,6 +3011,15 @@ var STR={
 "msg_mixlimit": "તમે 20-મિક્સની મર્યાદા સુધી પહોંચી ગયા છો. પહેલા એક ડિલીટ કરો.",
 "msg_binaural": "બાયનોરલ બીટ {v} Hz",
 "msg_langset": "ભાષા બદલાઈ",
+"presets_label": "પ્રીસેટ",
+"m_surprise": "સરપ્રાઈઝ કરો",
+"m_savemix": "મિક્સ સેવ કરો",
+"m_delmix": "મિક્સ ડિલીટ કરો",
+"mymixes": "મારા મિક્સ",
+"msg_namesave": "આ મિક્સનું નામ:",
+"msg_overwrite": "\"{n}\" નામનું મિક્સ પહેલેથી છે. ઓવરરાઇટ કરવું?",
+"msg_delmix": "\"{n}\" મિક્સ ડિલીટ કરવું?",
+"m_defaultmix": "મારું મિક્સ",
 "m_packexp": "સાઉન્ડ પેક એક્સપોર્ટ કરો",
 "m_packimp": "સાઉન્ડ પેક ઇમ્પોર્ટ કરો…",
 "msg_nosounds": "પેક કરવા માટે હજી કોઈ કસ્ટમ સાઉન્ડ નથી.",
@@ -3075,7 +3103,7 @@ return v;
 /* Translate the static interface by walking its text nodes and attribute
    values once, remembering which key each one came from so switching
    language is a re-render rather than a re-parse. */
-var I18N_SKIP="#grid,#mixer,#profiles,#nowbar,#toast,#prog,#fab,#dlg,#breathe,#expNote,#extraStatus";
+var I18N_SKIP="#grid,#mixer,#presetSel,#nowbar,#toast,#prog,#fab,#dlg,#breathe,#expNote,#extraStatus";
 function applyLang(){
 try{document.documentElement.setAttribute("lang",LANG);}catch(e){}
 var map=STR[LANG]||STR.en;
@@ -3283,18 +3311,11 @@ if(bClose)bClose.innerHTML=ic("x");
 if(bClose)bClose.onclick=function(){closeBreathe();};
 if(bPatSel)bPatSel.onchange=function(){bPat=BPAT[bPatSel.value]||BPAT.box;if(breatheRunning){bIdx=0;}};
 if(bOv)bOv.onclick=function(e){if(e.target===bOv)closeBreathe();};
-var pf=document.getElementById("pfilter");
-if(pf){
-[].forEach.call(pf.querySelectorAll(".fchip"),function(c){
-c.onclick=function(){
-pCat=c.dataset.cat;
-[].forEach.call(pf.querySelectorAll(".fchip"),function(x){var on=x===c;x.classList.toggle("sel",on);x.setAttribute("aria-selected",on?"true":"false");});
-buildProfiles();
-};
-});
-}
-var psi=document.getElementById("psearchInput");
-if(psi){var pTO=null;psi.oninput=function(){if(pTO)clearTimeout(pTO);pTO=setTimeout(function(){pQuery=psi.value.trim();buildProfiles();},180);};}
+var psel=document.getElementById("presetSel");
+if(psel)psel.onchange=function(){if(psel.value)applyProfileId(psel.value);syncPresetRow();};
+var rpBtn=document.getElementById("randP");if(rpBtn)rpBtn.onclick=randomize;
+var spBtn=document.getElementById("saveP");if(spBtn)spBtn.onclick=saveMixDialog;
+var dpBtn=document.getElementById("delP");if(dpBtn)dpBtn.onclick=deleteSelectedMix;
 var spaceSl=document.getElementById("spaceSl");
 if(spaceSl)spaceSl.oninput=function(e){spaceVal=e.target.value/100;if(revWet&&a)revWet.gain.setTargetAtTime(spaceVal*.6,a.currentTime,.05);saveSession();};
 var al=document.getElementById("autolevelToggle");
