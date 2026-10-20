@@ -1,0 +1,11 @@
+# dependencies (only needed to rebuild the minified file)
+node_modules/
+package-lock.json
+
+# build output is committed on purpose (index.html), but keep stray artifacts out
+*.log
+*.tmp
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
