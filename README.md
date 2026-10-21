@@ -47,7 +47,7 @@ Layer rain, thunder, fire, café murmur, ocean, wind chimes and more — then ex
 [![No build required](https://img.shields.io/badge/build-none%20required-success?style=flat-square)](#-development)
 [![Made in Vadodara, India](https://img.shields.io/badge/made%20in-Vadodara%2C%20India-ff9933?style=flat-square)](#credits)
 
-### ▶ [**Open it in your browser — drsamonline.github.io/ambient-sound-studio**](https://drsamonline.github.io/ambient-sound-studio/play/)
+### ▶ [**Open it in your browser — drsamonline.github.io/ambient-sound-studio/play/**](https://drsamonline.github.io/ambient-sound-studio/play/)
 
 No install, no sign-up. It runs entirely in your browser and works offline.
 
