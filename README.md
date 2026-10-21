@@ -23,13 +23,12 @@ Layer rain, thunder, fire, café murmur, ocean and more, then export the mix as 
 
 <img src="assets/banner.svg" alt="Ambient Sound Studio" width="100%">
 
-# Ambient Sound Studio
 
 **A private, offline ambient sound mixer that lives in a single HTML file.**
 
 Layer rain, thunder, fire, café murmur, ocean, wind chimes and more — then export the mix as WAV or Opus.
 
-[![Live demo](https://img.shields.io/badge/%E2%96%B6%20open%20it-live%20now-brightgreen?style=for-the-badge)](https://drsamonline.github.io/ambient-sound-studio/)
+[![Live demo](https://img.shields.io/badge/%E2%96%B6%20open%20it-live%20now-brightgreen?style=for-the-badge)](https://drsamonline.github.io/ambient-sound-studio/play/)
 [![Licence: Personal Use](https://img.shields.io/badge/licence-personal%20use%20only-orange?style=for-the-badge)](LICENSE)
 [![Commercial: licence required](https://img.shields.io/badge/commercial-licence%20required-critical?style=for-the-badge)](LICENSE)
 [![Version](https://img.shields.io/badge/version-1.5-d7a94a?style=for-the-badge)(CHANGELOG.md)
@@ -48,7 +47,7 @@ Layer rain, thunder, fire, café murmur, ocean, wind chimes and more — then ex
 [![No build required](https://img.shields.io/badge/build-none%20required-success?style=flat-square)](#-development)
 [![Made in Vadodara, India](https://img.shields.io/badge/made%20in-Vadodara%2C%20India-ff9933?style=flat-square)](#credits)
 
-### ▶ [**Open it in your browser — drsamonline.github.io/ambient-sound-studio**](https://drsamonline.github.io/ambient-sound-studio/)
+### ▶ [**Open it in your browser — drsamonline.github.io/ambient-sound-studio**](https://drsamonline.github.io/ambient-sound-studio/play/)
 
 No install, no sign-up. It runs entirely in your browser and works offline.
 
@@ -183,7 +182,7 @@ Pick one from the dropdown — they are grouped by category, so all 36 are alway
 
 ### Use it online
 
-**[https://drsamonline.github.io/ambient-sound-studio/](https://drsamonline.github.io/ambient-sound-studio/)**
+**[https://drsamonline.github.io/ambient-sound-studio/play/](https://drsamonline.github.io/ambient-sound-studio/play/)**
 
 That is the whole app, hosted. Nothing to install. On a phone you can add it to
 your home screen and it will open like a normal app.
@@ -203,7 +202,7 @@ open index.html          # macOS
 That's it — no install, no build, no server, no network. Everything runs from your disk.
 
 You can also serve the folder with any static host (GitHub Pages, Netlify,
-`python3 -m http.server`) — that is exactly how the [hosted copy](https://drsamonline.github.io/ambient-sound-studio/) above is deployed.
+`python3 -m http.server`) — that is exactly how the [hosted copy](https://drsamonline.github.io/ambient-sound-studio/play/) above is deployed.
 
 > **First click starts audio.** Browsers require a user gesture before playing sound, so press the ▶ button (or a preset) to begin.
 
