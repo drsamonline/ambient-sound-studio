@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>404 — Not found · Ambient Sound Studio</title>
+<meta name="description" content="That page could not be found. Head back to Ambient Sound Studio.">
+<meta name="robots" content="noindex, follow">
+<meta name="theme-color" content="#050b1a">
+<link rel="icon" href="/ambient-sound-studio/assets/favicon.svg" type="image/svg+xml">
+<style>
+:root{--bg:#050b1a;--tx:#e9eefb;--tx2:#9fadcd;--teal:#38e2cd;--violet:#9b6cff;
+--aurora:linear-gradient(115deg,#38e2cd 0%,#5fd0e8 32%,#9b6cff 68%,#c58bff 100%);}
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh;display:flex;align-items:center;justify-content:center;
+font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Inter",Roboto,Helvetica,Arial,sans-serif;
+color:var(--tx);text-align:center;padding:32px;
+background:
+ radial-gradient(60% 48% at 12% 4%, rgba(56,226,205,.20), transparent 62%),
+ radial-gradient(52% 44% at 88% 0%, rgba(155,108,255,.22), transparent 60%),
+ linear-gradient(180deg,#050b1a,#04091a);}
+.box{max-width:520px}
+.mark{width:64px;height:64px;margin:0 auto 22px}
+h1{font-size:clamp(30px,7vw,56px);font-weight:800;margin:0;letter-spacing:-.02em;
+background:linear-gradient(180deg,#fff,#93a5cf);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+p{color:var(--tx2);margin:16px 0 30px;font-size:16px}
+a.btn{display:inline-flex;align-items:center;gap:9px;padding:14px 26px;border-radius:999px;
+font-weight:600;color:#04121a;text-decoration:none;background:var(--aurora);
+box-shadow:0 14px 40px -14px rgba(56,226,205,.85)}
+a.link{display:block;margin-top:20px;color:var(--tx2);font-size:14px;text-decoration:underline;text-underline-offset:3px}
+</style>
+</head>
+<body>
+  <div class="box">
+    <svg class="mark" viewBox="0 0 32 32" aria-hidden="true">
+      <defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0" stop-color="#38e2cd"/><stop offset="1" stop-color="#9b6cff"/>
+      </linearGradient></defs>
+      <rect x="1" y="1" width="30" height="30" rx="9" fill="none" stroke="url(#g)" stroke-width="1.6"/>
+      <g fill="url(#g)">
+        <rect x="7" y="13" width="2.6" height="6" rx="1.3"/>
+        <rect x="12" y="8.5" width="2.6" height="15" rx="1.3"/>
+        <rect x="17" y="5.5" width="2.6" height="21" rx="1.3"/>
+        <rect x="22" y="10.5" width="2.6" height="11" rx="1.3"/>
+      </g>
+    </svg>
+    <h1>404</h1>
+    <p>That page drifted out of the mix. Let's get you back to the studio.</p>
+    <a class="btn" href="/ambient-sound-studio/">
+      <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg>
+      Back to the studio
+    </a>
+    <a class="link" href="https://github.com/drsamonline/ambient-sound-studio">View the repository</a>
+  </div>
+</body>
+</html>

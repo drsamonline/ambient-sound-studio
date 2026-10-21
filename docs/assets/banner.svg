@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 320" width="1200" height="320" role="img" aria-label="Ambient Sound Studio">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#141a26"/>
+      <stop offset="0.55" stop-color="#0a0c12"/>
+      <stop offset="1" stop-color="#050608"/>
+    </linearGradient>
+    <linearGradient id="gold" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#f3e3bd"/>
+      <stop offset="0.6" stop-color="#d7a94a"/>
+      <stop offset="1" stop-color="#8a6a2c"/>
+    </linearGradient>
+    <linearGradient id="wave" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#d7a94a" stop-opacity="0.25"/>
+      <stop offset="0.5" stop-color="#d7a94a"/>
+      <stop offset="1" stop-color="#d7a94a" stop-opacity="0.25"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0" stop-color="#d7a94a" stop-opacity="0.30"/>
+      <stop offset="1" stop-color="#d7a94a" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+
+  <rect width="1200" height="320" fill="url(#bg)"/>
+  <circle cx="600" cy="160" r="300" fill="url(#glow)"/>
+
+  <!-- waveform mark -->
+  <g transform="translate(80,120)" stroke="url(#wave)" stroke-width="9" stroke-linecap="round" fill="none">
+    <path d="M0 40h16V22h16v36h16V6h16v68h16V-10h16v100h16V-4h16v88h16V14h16v52h16V30h16v20h16"/>
+  </g>
+
+  <text x="470" y="150" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif"
+        font-size="76" font-weight="700" letter-spacing="1" fill="url(#gold)">Ambient</text>
+  <text x="472" y="186" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif"
+        font-size="19" letter-spacing="8" fill="#8b90a3">SOUND STUDIO</text>
+
+  <g font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif" font-size="15" fill="#8b90a3">
+    <text x="472" y="228">25 synthesised layers · 28 presets · reverb · binaural beats</text>
+    <text x="472" y="254">WAV &amp; Opus export · works fully offline · one HTML file</text>
+  </g>
+
+  <rect x="0" y="316" width="1200" height="4" fill="url(#gold)" opacity="0.55"/>
+</svg>

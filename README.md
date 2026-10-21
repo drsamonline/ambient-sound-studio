@@ -1,5 +1,26 @@
 <div align="center">
 
+<a href="https://drsamonline.github.io/ambient-sound-studio/">
+<img src="https://socialify.git.ci/drsamonline/ambient-sound-studio/image?name=1&owner=1&description=1&language=1&theme=Dark&font=Inter" alt="Ambient Sound Studio — landing page" width="620">
+</a>
+
+**Ambient Sound Studio** — a private, offline ambient sound mixer that lives in a single HTML file.
+
+Layer rain, thunder, fire, café murmur, ocean and more, then export the mix as WAV or Opus.
+
+[![Landing page](https://img.shields.io/badge/landing%20page-open-38e2cd?style=for-the-badge)](https://drsamonline.github.io/ambient-sound-studio/)
+[![Live demo](https://img.shields.io/badge/%E2%96%B6%20live%20studio-play-9b6cff?style=for-the-badge)](https://drsamonline.github.io/ambient-sound-studio/play/)
+[![Offline](https://img.shields.io/badge/offline-yes-brightgreen?style=for-the-badge)](#-offline--pwa)
+[![Tracking](https://img.shields.io/badge/tracking-none-success?style=for-the-badge)](#-privacy)
+
+▶ **[Landing page](https://drsamonline.github.io/ambient-sound-studio/)** · **[Open the live studio](https://drsamonline.github.io/ambient-sound-studio/play/)** · [Repository](https://github.com/drsamonline/ambient-sound-studio)
+
+</div>
+
+---
+
+<div align="center">
+
 <img src="assets/banner.svg" alt="Ambient Sound Studio" width="100%">
 
 # Ambient Sound Studio

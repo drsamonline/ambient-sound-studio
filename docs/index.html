@@ -1,0 +1,626 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ambient Sound Studio — Offline Ambient Sound Mixer in One HTML File</title>
+<meta name="description" content="Ambient Sound Studio is a private, offline ambient sound mixer that lives in a single HTML file. Layer 25 synthesised sounds, pick from 36 presets, and export your mix as WAV or Opus — no install, no sign-up, no tracking.">
+<meta name="keywords" content="ambient sound mixer, soundscape generator, white noise, pink noise, brown noise, sleep sounds, focus sounds, Web Audio API, offline PWA, single HTML file, binaural beats, rain sounds, ambient sound studio, Dr. Sohil Momin">
+<meta name="author" content="Dr. Sohil Momin">
+<meta name="robots" content="index, follow, max-image-preview:large">
+<meta name="theme-color" content="#050b1a">
+<link rel="canonical" href="https://drsamonline.github.io/ambient-sound-studio/">
+
+<!-- Open Graph -->
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Ambient Sound Studio">
+<meta property="og:title" content="Ambient Sound Studio — Offline Ambient Sound Mixer in One HTML File">
+<meta property="og:description" content="Layer 25 synthesised sounds, pick from 36 curated presets, and export your mix as WAV or Opus. Private, offline and installable — all in a single HTML file.">
+<meta property="og:url" content="https://drsamonline.github.io/ambient-sound-studio/">
+<meta property="og:image" content="https://socialify.git.ci/drsamonline/ambient-sound-studio/image?name=1&owner=1&description=1&language=1&theme=Dark&font=Inter">
+<meta property="og:image:alt" content="Ambient Sound Studio repository card">
+<meta property="og:locale" content="en_IN">
+
+<!-- Twitter -->
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Ambient Sound Studio — Offline Ambient Sound Mixer in One HTML File">
+<meta name="twitter:description" content="Layer 25 synthesised sounds, pick from 36 curated presets, and export your mix as WAV or Opus. Private, offline and installable — all in a single HTML file.">
+<meta name="twitter:image" content="https://socialify.git.ci/drsamonline/ambient-sound-studio/image?name=1&owner=1&description=1&language=1&theme=Dark&font=Inter">
+
+<link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="assets/favicon.svg">
+
+<style>
+:root{
+  --bg:#050b1a;
+  --bg-2:#071026;
+  --panel:rgba(255,255,255,.045);
+  --panel-brd:rgba(255,255,255,.10);
+  --panel-brd-hi:rgba(120,230,220,.34);
+  --tx:#e9eefb;
+  --tx-2:#9fadcd;
+  --tx-3:#6f7d9e;
+  --teal:#38e2cd;
+  --teal-2:#1fc9c0;
+  --violet:#9b6cff;
+  --violet-2:#b98cff;
+  --aurora:linear-gradient(115deg,#38e2cd 0%,#5fd0e8 32%,#9b6cff 68%,#c58bff 100%);
+  --r:18px;
+  --maxw:1120px;
+  --font:-apple-system,BlinkMacSystemFont,"Segoe UI","Inter",Roboto,Helvetica,Arial,"Noto Sans",sans-serif;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  margin:0;
+  font-family:var(--font);
+  color:var(--tx);
+  background:var(--bg);
+  line-height:1.65;
+  -webkit-font-smoothing:antialiased;
+  overflow-x:hidden;
+}
+a{color:inherit;text-decoration:none}
+img{max-width:100%;display:block}
+h1,h2,h3{line-height:1.18;letter-spacing:-.01em;margin:0}
+p{margin:0}
+
+/* ---------- ambient background ---------- */
+.aurora{
+  position:fixed;inset:0;z-index:-2;pointer-events:none;
+  background:
+    radial-gradient(60% 48% at 12% 4%, rgba(56,226,205,.20), transparent 62%),
+    radial-gradient(52% 44% at 88% 0%, rgba(155,108,255,.22), transparent 60%),
+    radial-gradient(70% 60% at 50% 108%, rgba(63,120,255,.16), transparent 66%),
+    linear-gradient(180deg,#050b1a 0%,#050b1a 40%,#04091a 100%);
+}
+.aurora::after{
+  content:"";position:absolute;inset:0;
+  background-image:radial-gradient(rgba(255,255,255,.05) 1px,transparent 1px);
+  background-size:44px 44px;
+  mask-image:radial-gradient(70% 60% at 50% 20%,#000 0%,transparent 80%);
+  -webkit-mask-image:radial-gradient(70% 60% at 50% 20%,#000 0%,transparent 80%);
+  opacity:.5;
+}
+.wrap{max-width:var(--maxw);margin:0 auto;padding:0 22px}
+.eyebrow{
+  font-size:12px;letter-spacing:.22em;text-transform:uppercase;
+  color:var(--teal);font-weight:600;
+}
+
+/* ---------- nav ---------- */
+.nav{
+  position:sticky;top:0;z-index:60;
+  backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);
+  background:rgba(5,11,26,.72);
+  border-bottom:1px solid rgba(255,255,255,.06);
+}
+.nav-in{
+  max-width:var(--maxw);margin:0 auto;padding:12px 22px;
+  display:flex;align-items:center;gap:18px;
+}
+.brand{display:flex;align-items:center;gap:11px;font-weight:700;letter-spacing:.01em;font-size:16px}
+.brand .mark{width:30px;height:30px;flex:none}
+.nav-links{display:flex;gap:26px;margin-left:auto;align-items:center}
+.nav-links a{font-size:14px;color:var(--tx-2);transition:color .2s}
+.nav-links a:hover{color:var(--tx)}
+.nav-cta{
+  font-size:13.5px;font-weight:600;padding:9px 17px;border-radius:999px;
+  background:var(--aurora);color:#04121a;
+  box-shadow:0 8px 26px -10px rgba(56,226,205,.7);
+  transition:transform .2s,box-shadow .2s;
+}
+.nav-cta:hover{transform:translateY(-1px);box-shadow:0 12px 32px -10px rgba(155,108,255,.75)}
+@media(max-width:760px){.nav-links{display:none}}
+
+/* ---------- hero ---------- */
+.hero{padding:74px 0 40px;text-align:center;position:relative}
+.hero h1{
+  font-size:clamp(34px,6.4vw,68px);font-weight:800;letter-spacing:-.025em;
+  margin:20px 0 0;
+  background:linear-gradient(180deg,#ffffff 0%,#cdd8f5 58%,#93a5cf 100%);
+  -webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;
+}
+.hero .pitch{
+  max-width:680px;margin:20px auto 0;font-size:clamp(16px,2.1vw,20px);color:var(--tx-2);
+}
+.hero .pitch b{color:var(--tx);font-weight:600}
+.cta-row{display:flex;gap:14px;justify-content:center;flex-wrap:wrap;margin-top:34px}
+.btn{
+  display:inline-flex;align-items:center;gap:9px;
+  padding:14px 26px;border-radius:999px;font-weight:600;font-size:15.5px;
+  transition:transform .2s,box-shadow .25s,border-color .2s,background .2s;
+}
+.btn svg{width:18px;height:18px;flex:none}
+.btn-primary{background:var(--aurora);color:#04121a;box-shadow:0 14px 40px -14px rgba(56,226,205,.85)}
+.btn-primary:hover{transform:translateY(-2px);box-shadow:0 20px 50px -14px rgba(155,108,255,.85)}
+.btn-ghost{
+  border:1px solid var(--panel-brd);background:var(--panel);color:var(--tx);
+  backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
+}
+.btn-ghost:hover{border-color:var(--panel-brd-hi);transform:translateY(-2px)}
+
+/* ---------- waveform motif ---------- */
+.stage{
+  margin:52px auto 0;max-width:880px;position:relative;
+  border:1px solid var(--panel-brd);border-radius:26px;overflow:hidden;
+  background:linear-gradient(180deg,rgba(255,255,255,.05),rgba(255,255,255,.015));
+  backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+  box-shadow:0 40px 90px -50px rgba(56,226,205,.5), inset 0 1px 0 rgba(255,255,255,.06);
+  padding:26px 22px 20px;
+}
+.stage-head{display:flex;align-items:center;gap:10px;margin-bottom:16px}
+.dots{display:flex;gap:6px}
+.dots i{width:9px;height:9px;border-radius:50%;background:rgba(255,255,255,.16)}
+.stage-head .label{margin-left:auto;font-size:11.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--tx-3)}
+.spectrum{display:flex;align-items:flex-end;justify-content:center;gap:5px;height:132px;padding:0 4px}
+.spectrum span{
+  flex:1 1 0;max-width:14px;border-radius:6px 6px 3px 3px;
+  background:linear-gradient(180deg,var(--teal) 0%,var(--violet) 100%);
+  opacity:.9;transform-origin:bottom;
+  animation:eq 2.6s ease-in-out infinite;
+}
+@keyframes eq{0%,100%{transform:scaleY(.34)}50%{transform:scaleY(1)}}
+.wave{margin-top:14px}
+.wave svg{width:100%;height:56px;display:block}
+.wave path{
+  fill:none;stroke:url(#wg);stroke-width:2;stroke-linecap:round;
+  stroke-dasharray:1200;stroke-dashoffset:1200;
+  animation:draw 4.5s ease-in-out infinite;
+}
+@keyframes draw{0%{stroke-dashoffset:1200}45%,55%{stroke-dashoffset:0}100%{stroke-dashoffset:-1200}}
+.controls{display:flex;gap:10px;justify-content:center;margin-top:18px;flex-wrap:wrap}
+.pill{
+  display:inline-flex;align-items:center;gap:7px;
+  padding:8px 15px;border-radius:999px;font-size:12.5px;color:var(--tx-2);
+  border:1px solid var(--panel-brd);background:var(--panel);
+}
+.pill svg{width:14px;height:14px}
+@media(prefers-reduced-motion:reduce){
+  .spectrum span{animation:none;transform:scaleY(.62)}
+  .wave path{animation:none;stroke-dashoffset:0}
+  html{scroll-behavior:auto}
+}
+
+/* ---------- badges ---------- */
+.badges{display:flex;gap:9px;flex-wrap:wrap;justify-content:center;margin-top:30px}
+.badges img{height:22px}
+.css-badge{
+  display:inline-flex;align-items:center;gap:6px;height:22px;padding:0 11px;
+  border-radius:6px;font-size:11.5px;font-weight:600;letter-spacing:.02em;
+  background:rgba(56,226,205,.10);border:1px solid rgba(56,226,205,.30);color:#8ff0e4;
+}
+.css-badge.v{background:rgba(155,108,255,.12);border-color:rgba(155,108,255,.34);color:#c7a9ff}
+.css-badge.d{background:rgba(255,255,255,.05);border-color:rgba(255,255,255,.14);color:var(--tx-2)}
+
+/* ---------- sections ---------- */
+section{padding:82px 0}
+.sec-head{text-align:center;max-width:660px;margin:0 auto 46px}
+.sec-head h2{font-size:clamp(26px,4vw,40px);font-weight:750;margin-top:14px}
+.sec-head p{color:var(--tx-2);margin-top:14px;font-size:16px}
+
+.grid{display:grid;gap:18px}
+.cards{grid-template-columns:repeat(3,1fr)}
+@media(max-width:920px){.cards{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:600px){.cards{grid-template-columns:1fr}}
+.card{
+  padding:26px 24px;border-radius:var(--r);
+  border:1px solid var(--panel-brd);
+  background:linear-gradient(180deg,rgba(255,255,255,.05),rgba(255,255,255,.012));
+  backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
+  transition:transform .25s,border-color .25s,box-shadow .25s;
+}
+.card:hover{transform:translateY(-4px);border-color:var(--panel-brd-hi);box-shadow:0 30px 60px -40px rgba(56,226,205,.6)}
+.ic{
+  width:46px;height:46px;border-radius:13px;display:flex;align-items:center;justify-content:center;
+  background:linear-gradient(135deg,rgba(56,226,205,.18),rgba(155,108,255,.20));
+  border:1px solid rgba(255,255,255,.10);margin-bottom:16px;
+}
+.ic svg{width:23px;height:23px;stroke:url(#ig);fill:none;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
+.card h3{font-size:17.5px;font-weight:650}
+.card p{color:var(--tx-2);font-size:14.5px;margin-top:9px}
+
+/* how it works */
+.steps{grid-template-columns:repeat(4,1fr)}
+@media(max-width:900px){.steps{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:560px){.steps{grid-template-columns:1fr}}
+.step{
+  position:relative;padding:26px 22px;border-radius:var(--r);
+  border:1px solid var(--panel-brd);background:var(--panel);
+}
+.step .n{
+  font-size:13px;font-weight:700;color:#04121a;width:30px;height:30px;border-radius:9px;
+  display:flex;align-items:center;justify-content:center;background:var(--aurora);margin-bottom:15px;
+}
+.step h3{font-size:16px;font-weight:640}
+.step p{color:var(--tx-2);font-size:14px;margin-top:8px}
+
+/* demo */
+.demo{display:grid;grid-template-columns:1.35fr .9fr;gap:26px;align-items:center}
+@media(max-width:860px){.demo{grid-template-columns:1fr}}
+.shot{
+  border-radius:20px;overflow:hidden;border:1px solid var(--panel-brd);
+  box-shadow:0 50px 90px -50px rgba(0,0,0,.9);
+  background:#0a1024;
+}
+.shot img{width:100%}
+.shot-row{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:14px}
+.demo h3{font-size:24px;font-weight:700}
+.demo p{color:var(--tx-2);margin-top:14px;font-size:15.5px}
+.demo ul{list-style:none;padding:0;margin:20px 0 0;display:grid;gap:11px}
+.demo li{display:flex;gap:11px;align-items:flex-start;font-size:14.5px;color:var(--tx-2)}
+.demo li svg{width:18px;height:18px;flex:none;margin-top:3px;stroke:var(--teal);fill:none;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round}
+
+/* get started */
+.gs{display:grid;grid-template-columns:1fr 1fr;gap:22px}
+@media(max-width:760px){.gs{grid-template-columns:1fr}}
+.gs-card{padding:30px 28px;border-radius:var(--r);border:1px solid var(--panel-brd);background:var(--panel)}
+.gs-card h3{font-size:19px;font-weight:680}
+.gs-card p{color:var(--tx-2);margin-top:11px;font-size:14.5px}
+pre{
+  margin:18px 0 0;padding:16px 18px;border-radius:13px;overflow:auto;
+  background:#03081a;border:1px solid rgba(255,255,255,.09);
+  font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:13px;color:#c8d6f5;
+}
+pre .c{color:var(--tx-3)}
+.note{
+  margin-top:16px;padding:13px 16px;border-radius:12px;font-size:13.5px;color:var(--tx-2);
+  background:rgba(56,226,205,.07);border:1px solid rgba(56,226,205,.22);
+}
+
+/* faq */
+.faq{max-width:820px;margin:0 auto}
+details{
+  border:1px solid var(--panel-brd);border-radius:14px;background:var(--panel);
+  padding:0 20px;margin-bottom:12px;transition:border-color .2s;
+}
+details[open]{border-color:var(--panel-brd-hi)}
+summary{
+  cursor:pointer;list-style:none;padding:18px 0;font-weight:600;font-size:15.5px;
+  display:flex;align-items:center;gap:12px;
+}
+summary::-webkit-details-marker{display:none}
+summary .chev{margin-left:auto;width:18px;height:18px;flex:none;transition:transform .25s;stroke:var(--tx-2);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+details[open] summary .chev{transform:rotate(180deg)}
+details p{color:var(--tx-2);font-size:14.5px;padding:0 0 20px;margin:0}
+
+/* footer */
+footer{border-top:1px solid rgba(255,255,255,.07);padding:46px 0 60px;margin-top:40px}
+.foot{display:flex;gap:20px;flex-wrap:wrap;align-items:center;justify-content:space-between}
+.foot .brand{font-size:15px}
+.foot-links{display:flex;gap:22px;flex-wrap:wrap}
+.foot-links a{font-size:14px;color:var(--tx-2)}
+.foot-links a:hover{color:var(--tx)}
+.foot-note{margin-top:26px;font-size:13px;color:var(--tx-3);text-align:center}
+.foot-note a{color:var(--tx-2);text-decoration:underline;text-underline-offset:3px}
+</style>
+</head>
+<body>
+<div class="aurora" aria-hidden="true"></div>
+
+<!-- shared SVG gradient defs -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <linearGradient id="wg" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#38e2cd"/>
+      <stop offset=".5" stop-color="#5fd0e8"/>
+      <stop offset="1" stop-color="#9b6cff"/>
+    </linearGradient>
+    <linearGradient id="ig" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#38e2cd"/>
+      <stop offset="1" stop-color="#b98cff"/>
+    </linearGradient>
+  </defs>
+</svg>
+
+<nav class="nav">
+  <div class="nav-in">
+    <a class="brand" href="#top" aria-label="Ambient Sound Studio home">
+      <svg class="mark" viewBox="0 0 32 32" aria-hidden="true">
+        <rect x="1" y="1" width="30" height="30" rx="9" fill="none" stroke="url(#wg)" stroke-width="1.6"/>
+        <g fill="url(#wg)">
+          <rect x="7" y="13" width="2.6" height="6" rx="1.3"/>
+          <rect x="12" y="8.5" width="2.6" height="15" rx="1.3"/>
+          <rect x="17" y="5.5" width="2.6" height="21" rx="1.3"/>
+          <rect x="22" y="10.5" width="2.6" height="11" rx="1.3"/>
+        </g>
+      </svg>
+      Ambient Sound Studio
+    </a>
+    <div class="nav-links">
+      <a href="#features">Features</a>
+      <a href="#how">How it works</a>
+      <a href="#demo">Demo</a>
+      <a href="#start">Get started</a>
+      <a href="#faq">FAQ</a>
+    </div>
+    <a class="nav-cta" href="play/">Open the studio</a>
+  </div>
+</nav>
+
+<header class="hero wrap" id="top">
+  <span class="eyebrow">Private · Offline · Single HTML file</span>
+  <h1>Ambient Sound Studio</h1>
+  <p class="pitch">Layer rain, thunder, fire, café murmur, ocean and more into your own soundscape — then <b>export the mix as WAV or Opus</b>. It runs entirely in your browser, works offline, and never sends a thing.</p>
+
+  <div class="cta-row">
+    <a class="btn btn-primary" href="play/">
+      <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg>
+      Open the studio
+    </a>
+    <a class="btn btn-ghost" href="https://github.com/drsamonline/ambient-sound-studio" target="_blank" rel="noopener">
+      <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2C6.48 2 2 6.58 2 12.25c0 4.53 2.87 8.37 6.84 9.73.5.09.68-.22.68-.49 0-.24-.01-.88-.01-1.73-2.78.62-3.37-1.37-3.37-1.37-.45-1.18-1.11-1.5-1.11-1.5-.91-.64.07-.62.07-.62 1 .07 1.53 1.06 1.53 1.06.89 1.56 2.34 1.11 2.91.85.09-.66.35-1.11.63-1.37-2.22-.26-4.56-1.14-4.56-5.07 0-1.12.39-2.03 1.03-2.75-.1-.26-.45-1.3.1-2.71 0 0 .84-.27 2.75 1.05A9.4 9.4 0 0 1 12 6.84c.85 0 1.71.12 2.51.34 1.91-1.32 2.75-1.05 2.75-1.05.55 1.41.2 2.45.1 2.71.64.72 1.03 1.63 1.03 2.75 0 3.94-2.34 4.81-4.57 5.06.36.32.68.94.68 1.9 0 1.37-.01 2.48-.01 2.82 0 .27.18.59.69.49A10.02 10.02 0 0 0 22 12.25C22 6.58 17.52 2 12 2z"/></svg>
+      View on GitHub
+    </a>
+  </div>
+
+  <div class="stage" role="img" aria-label="Illustration of a live audio spectrum and waveform">
+    <div class="stage-head">
+      <div class="dots"><i></i><i></i><i></i></div>
+      <span class="label">Live mix · 25 layers</span>
+    </div>
+    <div class="spectrum" aria-hidden="true">
+      <span style="animation-delay:-.2s"></span><span style="animation-delay:-1.1s"></span>
+      <span style="animation-delay:-.6s"></span><span style="animation-delay:-1.7s"></span>
+      <span style="animation-delay:-.35s"></span><span style="animation-delay:-1.35s"></span>
+      <span style="animation-delay:-.85s"></span><span style="animation-delay:-2.1s"></span>
+      <span style="animation-delay:-.15s"></span><span style="animation-delay:-1.5s"></span>
+      <span style="animation-delay:-.5s"></span><span style="animation-delay:-1.9s"></span>
+      <span style="animation-delay:-.7s"></span><span style="animation-delay:-1.2s"></span>
+      <span style="animation-delay:-.4s"></span><span style="animation-delay:-2.3s"></span>
+      <span style="animation-delay:-1.0s"></span><span style="animation-delay:-.25s"></span>
+      <span style="animation-delay:-1.6s"></span><span style="animation-delay:-.9s"></span>
+      <span style="animation-delay:-2.0s"></span><span style="animation-delay:-.55s"></span>
+      <span style="animation-delay:-1.25s"></span><span style="animation-delay:-.8s"></span>
+    </div>
+    <div class="wave" aria-hidden="true">
+      <svg viewBox="0 0 900 56" preserveAspectRatio="none">
+        <path d="M0 28 C 30 6, 60 6, 90 28 S 150 50, 180 28 S 240 6, 270 28 S 330 50, 360 28 S 420 6, 450 28 S 510 50, 540 28 S 600 6, 630 28 S 690 50, 720 28 S 780 6, 810 28 S 870 50, 900 28"/>
+      </svg>
+    </div>
+    <div class="controls" aria-hidden="true">
+      <span class="pill"><svg viewBox="0 0 24 24" fill="none" stroke="url(#ig)" stroke-width="2" stroke-linecap="round"><path d="M4 12h3l2-6 3 14 2-9 2 4h4"/></svg>Rain + Ocean + Wind</span>
+      <span class="pill"><svg viewBox="0 0 24 24" fill="none" stroke="url(#ig)" stroke-width="2" stroke-linecap="round"><path d="M12 3v18M6 8v8M18 8v8M3 11v2M21 11v2"/></svg>Reverb on</span>
+      <span class="pill"><svg viewBox="0 0 24 24" fill="none" stroke="url(#ig)" stroke-width="2" stroke-linecap="round"><path d="M12 7v5l3 2"/><circle cx="12" cy="12" r="9"/></svg>Sleep timer 45:00</span>
+    </div>
+  </div>
+
+  <div class="badges">
+    <img src="https://img.shields.io/badge/dependencies-0-brightgreen?style=flat-square" alt="Zero dependencies" onerror="this.style.display='none'">
+    <img src="https://img.shields.io/badge/offline-yes-brightgreen?style=flat-square" alt="Works offline" onerror="this.style.display='none'">
+    <img src="https://img.shields.io/badge/tracking-none-success?style=flat-square" alt="No tracking" onerror="this.style.display='none'">
+    <img src="https://img.shields.io/badge/PWA-installable-5A0FC8?style=flat-square" alt="Installable PWA" onerror="this.style.display='none'">
+    <img src="https://img.shields.io/badge/licence-personal%20use%20only-orange?style=flat-square" alt="Personal use licence" onerror="this.style.display='none'">
+    <span class="css-badge">25 layers</span>
+    <span class="css-badge v">36 presets</span>
+    <span class="css-badge d">1 HTML file · 137 KB</span>
+    <span class="css-badge">English · हिन्दी · ગુજરાતી</span>
+  </div>
+</header>
+
+<section id="features">
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="eyebrow">What's inside</span>
+      <h2>Everything you need to build a soundscape</h2>
+      <p>No install, no account, no cloud. Just open the page and start mixing.</p>
+    </div>
+    <div class="grid cards">
+      <article class="card">
+        <div class="ic"><svg viewBox="0 0 24 24"><path d="M4 14V10M8 18V6M12 16V8M16 20V4M20 14V10"/></svg></div>
+        <h3>25 synthesised layers</h3>
+        <p>Rain, thunder, café, train, wind, fire, birds, ocean, noise colours, forest, typing, clock, cat purr, cosmic drone, crickets, stream, wind chimes, binaural beat, heartbeat, fan, vinyl crackle, microphone and more — every one generated in the browser.</p>
+      </article>
+      <article class="card">
+        <div class="ic"><svg viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h10"/></svg></div>
+        <h3>36 curated presets</h3>
+        <p>Sleep, Focus, Relax, Nature and Urban moods — from Monsoon Evening to Deep Focus. Each preset carries a matching mood theme, and “Surprise me” picks a random mix.</p>
+      </article>
+      <article class="card">
+        <div class="ic"><svg viewBox="0 0 24 24"><path d="M12 3v12m0 0l-4-4m4 4l4-4M4 21h16"/></svg></div>
+        <h3>WAV &amp; Opus export</h3>
+        <p>Render up to 10 minutes as lossless WAV (16- or 24-bit) or compact Opus. Exports are peak-normalised and built from crossfaded tiles, so nothing loops audibly.</p>
+      </article>
+      <article class="card">
+        <div class="ic"><svg viewBox="0 0 24 24"><path d="M12 3a9 9 0 109 9"/><path d="M12 3v9h9"/></svg></div>
+        <h3>Offline &amp; installable</h3>
+        <p>One 137 KB HTML file with no audio files and no network calls. Open it with the network off and it still works; add it to your home screen as an app.</p>
+      </article>
+      <article class="card">
+        <div class="ic"><svg viewBox="0 0 24 24"><path d="M12 3l7 3v6c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6z"/><path d="M9.5 12l1.8 1.8L15 10"/></svg></div>
+        <h3>Private by design</h3>
+        <p>No analytics, no telemetry, no accounts, no cloud. Your mixes, custom sounds and settings stay on your own device. The only optional request is the Opus encoder you choose to download.</p>
+      </article>
+      <article class="card">
+        <div class="ic"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.5 2.6 2.5 15.4 0 18M12 3c-2.5 2.6-2.5 15.4 0 18"/></svg></div>
+        <h3>Three languages</h3>
+        <p>The whole interface — layer names, presets and messages — ships in English, हिन्दी and ગુજરાતી, switchable any time from the More menu.</p>
+      </article>
+    </div>
+  </div>
+</section>
+
+<section id="how">
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="eyebrow">How it works</span>
+      <h2>From silence to soundscape in four steps</h2>
+      <p>The first click starts audio — browsers require a gesture before sound can play.</p>
+    </div>
+    <div class="grid steps">
+      <div class="step"><div class="n">1</div><h3>Pick a preset</h3><p>Tap a curated mood, or hit “Surprise me” for a random mix. The whole app recolours to match.</p></div>
+      <div class="step"><div class="n">2</div><h3>Build your mix</h3><p>Raise individual layer faders, use mute and solo, and watch the live level meters. Drag to reorder.</p></div>
+      <div class="step"><div class="n">3</div><h3>Play &amp; unwind</h3><p>Press play and let it run. Add reverb, binaural beats or a breathing guide, and set a sleep timer or Pomodoro.</p></div>
+      <div class="step"><div class="n">4</div><h3>Export it</h3><p>Render your mix to WAV or Opus, or copy a share link so anyone can open your exact soundscape.</p></div>
+    </div>
+  </div>
+</section>
+
+<section id="demo">
+  <div class="wrap">
+    <div class="demo">
+      <div>
+        <div class="shot"><img src="assets/screenshot.jpg" alt="Ambient Sound Studio desktop interface with 25 layer cards and live level meters" loading="lazy"></div>
+        <div class="shot-row">
+          <div class="shot"><img src="assets/screenshot-mixer.jpg" alt="Mixer view with horizontal faders and meters" loading="lazy"></div>
+          <div class="shot"><img src="assets/screenshot-mobile.jpg" alt="Ambient Sound Studio on a phone" loading="lazy"></div>
+        </div>
+      </div>
+      <div>
+        <span class="eyebrow">See it live</span>
+        <h3 style="margin-top:12px">Open the studio and press play</h3>
+        <p>It's the whole app, hosted — nothing to install. On a phone you can add it to your home screen and it opens like a native app.</p>
+        <ul>
+          <li><svg viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg>25 layers, 36 presets, reverb, ducking and binaural beats</li>
+          <li><svg viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg>Card view and mixer view, with keyboard and screen-reader support</li>
+          <li><svg viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg>Add your own audio files as first-class layers</li>
+        </ul>
+        <div class="cta-row" style="justify-content:flex-start;margin-top:26px">
+          <a class="btn btn-primary" href="play/">
+            <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg>
+            Launch the studio
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="start">
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="eyebrow">Get started</span>
+      <h2>Use it online or run it from your disk</h2>
+    </div>
+    <div class="gs">
+      <div class="gs-card">
+        <h3>Open it in your browser</h3>
+        <p>The fastest path — the app is hosted and ready. No install, no sign-up.</p>
+        <div class="cta-row" style="justify-content:flex-start;margin-top:20px">
+          <a class="btn btn-primary" href="play/">
+            <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg>
+            Open the studio
+          </a>
+        </div>
+        <div class="note">First click starts audio — press ▶ or tap a preset to begin.</div>
+      </div>
+      <div class="gs-card">
+        <h3>Or clone and open the file</h3>
+        <p>The whole app is one HTML file. Download it and open it — no build, no server, no network.</p>
+<pre><span class="c"># clone the repository</span>
+git clone https://github.com/drsamonline/ambient-sound-studio.git
+cd ambient-sound-studio
+open index.html   <span class="c"># macOS</span>
+<span class="c"># xdg-open index.html  # Linux</span>
+<span class="c"># start index.html     # Windows</span></pre>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="faq">
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="eyebrow">FAQ</span>
+      <h2>Questions, answered</h2>
+    </div>
+    <div class="faq">
+      <details open>
+        <summary>Do I need to install anything?<svg class="chev" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></summary>
+        <p>No. It is one HTML file. Download it and open it — or just use the hosted copy.</p>
+      </details>
+      <details>
+        <summary>Does it need the internet?<svg class="chev" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></summary>
+        <p>No. Every built-in sound is generated in your browser. The only optional network request is the one-time Opus encoder download, which you are asked about first and which is cached on your device afterwards.</p>
+      </details>
+      <details>
+        <summary>Where does my data go?<svg class="chev" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></summary>
+        <p>Nowhere. There are no analytics, no accounts and no servers. Your mixes, custom sounds and settings are stored on your own device.</p>
+      </details>
+      <details>
+        <summary>Why does nothing happen until I press play?<svg class="chev" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></summary>
+        <p>Browsers block audio until you interact with the page. Press the ▶ button, or tap a preset, and it starts.</p>
+      </details>
+      <details>
+        <summary>Can it ship with recorded samples?<svg class="chev" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></summary>
+        <p>Every built-in sound is synthesised — no audio files are bundled, which keeps the app one small offline file. You can add your own audio via More ⋯ → Add sound files, and each file becomes a real layer stored on your device.</p>
+      </details>
+      <details>
+        <summary>How long can an export be, and in what format?<svg class="chev" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></summary>
+        <p>Up to 10 minutes, in WAV (16- or 24-bit) or Opus. WAV is instant; Opus has to be encoded, so it takes a little time even though it is many times faster than real time.</p>
+      </details>
+      <details>
+        <summary>Can I install it as an app?<svg class="chev" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></summary>
+        <p>Yes. On iOS use Share → Add to Home Screen. On Chrome/Edge/Android, an Install app button appears in the More menu when the folder is hosted with the service worker alongside the page.</p>
+      </details>
+      <details>
+        <summary>Does it work on a phone?<svg class="chev" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></summary>
+        <p>Yes — it is fully responsive and works well on mobile. Note that binaural beats need headphones to have any effect, and drag-to-reorder needs a mouse or trackpad.</p>
+      </details>
+      <details>
+        <summary>Is it free to use?<svg class="chev" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></summary>
+        <p>Free for personal, non-commercial use. Commercial use requires permission and a licence from the author. Because commercial use is restricted, it is a source-available licence rather than an OSI-approved open-source one.</p>
+      </details>
+      <details>
+        <summary>Something is wrong, or I have an idea.<svg class="chev" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></summary>
+        <p>Please open an issue on the repository — there are templates for bug reports and feature requests.</p>
+      </details>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <div class="foot">
+      <a class="brand" href="#top">
+        <svg class="mark" viewBox="0 0 32 32" aria-hidden="true">
+          <rect x="1" y="1" width="30" height="30" rx="9" fill="none" stroke="url(#wg)" stroke-width="1.6"/>
+          <g fill="url(#wg)">
+            <rect x="7" y="13" width="2.6" height="6" rx="1.3"/>
+            <rect x="12" y="8.5" width="2.6" height="15" rx="1.3"/>
+            <rect x="17" y="5.5" width="2.6" height="21" rx="1.3"/>
+            <rect x="22" y="10.5" width="2.6" height="11" rx="1.3"/>
+          </g>
+        </svg>
+        Ambient Sound Studio
+      </a>
+      <div class="foot-links">
+        <a href="play/">Live demo</a>
+        <a href="https://github.com/drsamonline/ambient-sound-studio" target="_blank" rel="noopener">Repository</a>
+        <a href="https://github.com/drsamonline/ambient-sound-studio/blob/main/README.md" target="_blank" rel="noopener">README</a>
+        <a href="https://github.com/drsamonline/ambient-sound-studio/blob/main/LICENSE" target="_blank" rel="noopener">Licence</a>
+      </div>
+    </div>
+    <p class="foot-note">Built by <a href="https://github.com/drsamonline" target="_blank" rel="noopener">Dr. Sohil Momin</a> · Source-available: free for personal use, commercial use requires a licence.</p>
+  </div>
+</footer>
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "SoftwareApplication",
+  "name": "Ambient Sound Studio",
+  "applicationCategory": "MultimediaApplication",
+  "operatingSystem": "Web browser (Web Audio API)",
+  "description": "A private, offline ambient sound mixer that lives in a single HTML file. Layer 25 synthesised sounds, choose from 36 curated presets, and export your mix as WAV or Opus.",
+  "url": "https://drsamonline.github.io/ambient-sound-studio/",
+  "downloadUrl": "https://github.com/drsamonline/ambient-sound-studio",
+  "codeRepository": "https://github.com/drsamonline/ambient-sound-studio",
+  "image": "https://socialify.git.ci/drsamonline/ambient-sound-studio/image?name=1&owner=1&description=1&language=1&theme=Dark&font=Inter",
+  "license": "https://github.com/drsamonline/ambient-sound-studio/blob/main/LICENSE",
+  "inLanguage": ["en", "hi", "gu"],
+  "author": {
+    "@type": "Person",
+    "name": "Dr. Sohil Momin",
+    "url": "https://github.com/drsamonline"
+  },
+  "offers": {
+    "@type": "Offer",
+    "price": "0",
+    "priceCurrency": "INR",
+    "description": "Free for personal, non-commercial use."
+  }
+}
+</script>
+</body>
+</html>
