@@ -26,20 +26,13 @@ Layer rain, thunder, fire, café murmur, ocean and more, then export the mix as 
 
 <img src="assets/banner.svg" alt="Ambient Sound Studio" width="100%">
 
-
-**A private, offline ambient sound mixer that lives in a single HTML file.**
-
-Layer rain, thunder, fire, café murmur, ocean, wind chimes and more — then export the mix as WAV or Opus.
-
 [![Live demo](https://img.shields.io/badge/%E2%96%B6%20open%20it-live%20now-brightgreen?style=for-the-badge)](https://drsamonline.github.io/ambient-sound-studio/play/)
 [![Licence: Personal Use](https://img.shields.io/badge/licence-personal%20use%20only-orange?style=for-the-badge)](LICENSE)
 [![Commercial: licence required](https://img.shields.io/badge/commercial-licence%20required-critical?style=for-the-badge)](LICENSE)
 [![Version](https://img.shields.io/badge/version-1.5-d7a94a?style=for-the-badge)](CHANGELOG.md)
 [![Dependencies](https://img.shields.io/badge/dependencies-0-brightgreen?style=for-the-badge)](#-zero-dependencies)
-[![Offline](https://img.shields.io/badge/offline-yes-brightgreen?style=for-the-badge)](#-offline--pwa)
 [![Single file](https://img.shields.io/badge/single%20file-1-blueviolet?style=for-the-badge)](#-zero-dependencies)
 [![PWA](https://img.shields.io/badge/PWA-installable-5A0FC8?style=for-the-badge)](#-offline--pwa)
-[![Tracking](https://img.shields.io/badge/tracking-none-success?style=for-the-badge)](#-privacy)
 [![Size](https://img.shields.io/badge/size-137%20KB-informational?style=for-the-badge)](#-zero-dependencies)
 
 [![HTML5](https://img.shields.io/badge/HTML5-E34F26?style=flat-square&logo=html5&logoColor=white)](https://developer.mozilla.org/docs/Web/HTML)
