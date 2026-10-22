@@ -15,6 +15,8 @@ Layer rain, thunder, fire, café murmur, ocean and more, then export the mix as 
 
 ▶ **[Landing page](https://drsamonline.github.io/ambient-sound-studio/)** · **[Open the live studio](https://drsamonline.github.io/ambient-sound-studio/play/)** · [Repository](https://github.com/drsamonline/ambient-sound-studio)
 
+**Download:** [Windows (.exe)](https://github.com/drsamonline/ambient-sound-studio/releases/latest/download/ambient-sound-studio-portable.exe) &nbsp;·&nbsp; [Android (.apk)](https://github.com/drsamonline/ambient-sound-studio/releases/latest/download/ambient-sound-studio.apk)
+
 </div>
 
 ---
