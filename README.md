@@ -9,6 +9,7 @@
 Layer rain, thunder, fire, café murmur, ocean and more, then export the mix as WAV or Opus.
 
 [![Landing page](https://img.shields.io/badge/landing%20page-open-38e2cd?style=for-the-badge)](https://drsamonline.github.io/ambient-sound-studio/)
+[![All projects](https://img.shields.io/badge/All%20projects-hub-38e2cd?style=for-the-badge)](https://drsamonline.github.io/)
 [![Live demo](https://img.shields.io/badge/%E2%96%B6%20live%20studio-play-9b6cff?style=for-the-badge)](https://drsamonline.github.io/ambient-sound-studio/play/)
 [![Offline](https://img.shields.io/badge/offline-yes-brightgreen?style=for-the-badge)](#-offline--pwa)
 [![Tracking](https://img.shields.io/badge/tracking-none-success?style=for-the-badge)](#-privacy)
