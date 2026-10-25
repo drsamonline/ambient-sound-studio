@@ -192,6 +192,12 @@ git clone https://github.com/drsamonline/ambient-sound-studio.git
 cd ambient-sound-studio
 open index.html          # macOS
 # xdg-open index.html    # Linux
+
+<!-- shot:start -->
+
+![Screenshot](docs/shot.png)
+
+<!-- shot:end -->
 # start index.html       # Windows
 ```
 
