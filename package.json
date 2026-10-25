@@ -1,6 +1,6 @@
 {
   "name": "ambient-sound-studio",
-  "version": "1.6.1",
+  "version": "1.6.2",
   "description": "A private, offline ambient sound mixer in a single HTML file.",
   "private": true,
   "license": "PolyForm-Noncommercial-1.0.0",
