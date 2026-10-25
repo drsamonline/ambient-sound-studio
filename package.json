@@ -3,7 +3,7 @@
   "version": "1.6.1",
   "description": "A private, offline ambient sound mixer in a single HTML file.",
   "private": true,
-  "license": "SEE LICENSE IN LICENSE",
+  "license": "PolyForm-Noncommercial-1.0.0",
   "author": "Dr. Sohil Momin",
   "homepage": "https://drsamonline.github.io/ambient-sound-studio/",
   "scripts": {
