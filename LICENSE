@@ -1,96 +1,22 @@
-Ambient Sound Studio — Personal Use Licence
-Version 1.0 — 19 October 2026
+Personal Use Only
 
-Copyright (c) 2026 Dr. Sohil Momin. All rights reserved.
+Copyright (c) 2026 Dr. Sohil Momin, Vadodara, Gujarat, India.
+All rights reserved except as expressly granted below.
 
-This licence governs the software known as "Ambient Sound Studio", including its
-source code, minified build, documentation and assets (together, "the Software").
-By using, copying or modifying the Software you accept these terms. If you do not
-accept them, do not use the Software.
+This licence governs the application in this repository (the "Work").
 
--------------------------------------------------------------------------------
-1. PERMITTED USE — PERSONAL, NON-COMMERCIAL
--------------------------------------------------------------------------------
-You are granted a free, worldwide, non-exclusive, non-transferable licence to:
+1. WHAT YOU MAY DO
 
-  (a) use the Software for personal, non-commercial purposes;
+You may use the Work for your own personal, non-commercial purposes, on any
+number of devices you own or personally control.
 
-  (b) copy and modify the Software for your own personal, non-commercial use;
+2. WHAT YOU MAY NOT DO
 
-  (c) share the Software, and your modified versions of it, with others free of
-      charge, provided that (i) this licence is included unchanged, (ii) the
-      copyright notice above is retained, and (iii) any modified version is
-      clearly marked as modified and is not presented as the original.
+You may not redistribute, publish, mirror, sublicense or otherwise make the Work
+available to any third party, and you may not sell it or use it commercially,
+without written permission.
 
--------------------------------------------------------------------------------
-2. COMMERCIAL USE REQUIRES PERMISSION AND A LICENCE
--------------------------------------------------------------------------------
-Commercial use of the Software is NOT permitted under this licence.
+3. NO WARRANTY
 
-"Commercial use" means any use intended for or directed toward commercial
-advantage or monetary compensation, and includes, without limitation:
-
-  (a) use by, for, or on behalf of a business, including internal business use;
-
-  (b) use in, or as part of, any product, service, application or website that
-      is sold, licensed, subscribed to, or monetised in any way, including
-      through advertising or sponsorship;
-
-  (c) use in paid or unpaid work performed for a client or an employer;
-
-  (d) bundling, embedding, hosting, sublicensing or redistributing the Software,
-      or any derivative of it, with or within any commercial offering;
-
-  (e) use in the development, testing or operation of a commercial product or
-      service, including as a component of a larger commercial work.
-
-To use the Software commercially you must first obtain the author's prior
-written permission and a separate commercial licence. Requests should be made to
-the author through the contact details published on the author's GitHub profile.
-A commercial licence may be granted on terms and for a fee agreed in writing.
-
--------------------------------------------------------------------------------
-3. THIRD-PARTY COMPONENTS
--------------------------------------------------------------------------------
-The Software may download, at your request, third-party components that are
-distributed under their own separate licences (see docs/THIRD-PARTY.md). Those
-components are governed by their own licences and not by this one.
-
--------------------------------------------------------------------------------
-4. NO TRADEMARK OR ENDORSEMENT RIGHTS
--------------------------------------------------------------------------------
-This licence grants no rights in the name "Ambient Sound Studio", in the author's
-name, or in any associated logos or marks. You may not use them in any way that
-suggests endorsement, sponsorship or affiliation without written permission.
-
--------------------------------------------------------------------------------
-5. NO WARRANTY
--------------------------------------------------------------------------------
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
-FOR A PARTICULAR PURPOSE AND NON-INFRINGEMENT.
-
--------------------------------------------------------------------------------
-6. LIMITATION OF LIABILITY
--------------------------------------------------------------------------------
-IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
-
--------------------------------------------------------------------------------
-7. TERMINATION
--------------------------------------------------------------------------------
-This licence terminates automatically if you breach any of its terms. On
-termination you must stop using the Software and destroy any copies you hold.
-Sections 2, 4, 5, 6, 7 and 8 survive termination.
-
--------------------------------------------------------------------------------
-8. GOVERNING LAW
--------------------------------------------------------------------------------
-This licence is governed by the laws of India, and the courts at Vadodara,
-Gujarat, India shall have exclusive jurisdiction.
-
--------------------------------------------------------------------------------
-For commercial licensing, or for any other permission, contact the author via
-the contact details published on the author's GitHub profile.
+The Work is provided "as is", without warranty of any kind, express or implied.
+The author is not liable for any loss arising from its use.
