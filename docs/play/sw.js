@@ -13,7 +13,7 @@
  * offline, and refresh the cached copy on every successful load. Static assets
  * stay cache-first, since they change far less often.
  */
-const CACHE = 'ambient-sound-studio-v2';
+const CACHE = 'ambient-sound-studio-vb';
 const SHELL = './index.html';
 
 self.addEventListener('install', (event) => {
