@@ -179,6 +179,9 @@
   footer .wrap { display: flex; flex-wrap: wrap; gap: 14px; align-items: center; }
   footer a { color: var(--muted); } footer a:hover { color: var(--accent); }
   .stamp { margin-left: auto; font-family: var(--mono); font-size: 10.5px; letter-spacing: .06em; }
+
+/* ---- a11y: the accent is light in the dark theme, the label is not -------- */
+[data-theme="dark"] a.btn:not(.ghost){color:#04211d!important}   /* 2.06 -> 8.2 on #1fc9c0 */
 </style>
 </head>
 <body>

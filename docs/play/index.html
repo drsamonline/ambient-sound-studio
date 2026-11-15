@@ -216,5 +216,18 @@ window.addEventListener("error", function () { window.__bootError = true; });
   input,textarea,select{border-radius:8px !important}
   .card,[class*="card"]{border-radius:12px !important}
   button:not(.ghost):not(.tab){background:var(--acc) !important}
+
+/* ---- a11y: muted labels on the accent ------------------------------------
+   .pRowBtn/.grip/.bt put --mut #8b90a3 on the accent #077792: 1.63:1. */
+.support-open,.pRowBtn,.grip,.bt{color:#ffffff!important}        /* 1.63/4.34 -> 5.17 */
+
+/* the author link and the drum buttons sit on the accent too */
+.authorlink,.dbt{color:#ffffff!important}
+
+/* the dark theme's accent is lighter (#4db0c8), so the same controls need the
+   dark ink there and white here */
+[data-theme="dark"] .support-open,[data-theme="dark"] .pRowBtn,
+[data-theme="dark"] .grip,[data-theme="dark"] .bt,
+[data-theme="dark"] .authorlink,[data-theme="dark"] .dbt{color:#04211d!important}
 </style>
 </body></html>
